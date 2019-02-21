@@ -1,0 +1,74 @@
+.App {
+  padding-left: 24px;
+	padding-right: 24px;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+/* #main-text-sect,
+#main-btn-sect {
+	padding-left: 150px;
+	padding-right: 150px;
+} */
+#main-text-sect {
+	max-width: 420px;
+	padding-left: 18px;
+}
+
+.animate-circle-stroke {
+	stroke-dasharray: 220;
+  stroke-dashoffset: 0;
+  animation-iteration-count: 1;
+  animation-name: rotate;
+  animation-duration: 5s;
+  animation-timing-function: linear;
+}
+@keyframes rotate {
+  to {
+    stroke-dashoffset: 220;
+  }
+}
+
+.animate-circle-stroke-less-duration {
+	animation-duration: 4s !important;
+}
+
+#main-text-sect {
+	font-size: 24px;
+}
+
+.node-vote-text {
+}
+
+.node-small-circle {
+	r: 10;
+}
+.vote-request-circle {
+	fill: green;
+}
+
+.vote-ack-circle {
+	fill: white;
+	stroke: green;
+	stroke-width: 3;
+}
+
+.leader-candidate-node,
+.leader-node
+ {
+	 stroke: black;
+	 stroke-width: 3;
+}
+
+.leader-candidate-node {
+	stroke-dasharray: 4;
+}
+
+.visibility-hidden {
+	visibility: hidden;
+}
+.visibility-visible {
+	visibility: visible;
+}
