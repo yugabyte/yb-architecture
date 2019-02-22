@@ -31,34 +31,38 @@ class App extends Component {
 				setTimeout(() => {
 					this.changeMainText('If there is no leader, a election timeout is triggered');
 
-					// get all outer circles of nodes
-					var nodeOuterCircles = document.getElementsByClassName('node-outer-circle');
+					////////////////// animate Node A and B ////////////////////////
+					var nodeAOuterCircle = document.getElementById('node-a-outer-circle');
+					nodeAOuterCircle.classList.add('animation-delay-3s');
+					nodeAOuterCircle.classList.add('animate-circle-stroke');
 
-					// get the specific node which will time out faster and eventually
+					var nodeBOuterCircle = document.getElementById('node-b-outer-circle');
+					nodeBOuterCircle.classList.add('animation-delay-2s');
+					nodeBOuterCircle.classList.add('animate-circle-stroke');
+
+					////////////////// animate Node C ////////////////////////
+					// get the specific node (i.e Node C) which would time out faster and eventually
 					// become the leader
-					var fasterTimeoutCircle = document.getElementById('node-c-circle-outter');
-
-					for(var i = 0; i < nodeOuterCircles.length; i++) {
-						nodeOuterCircles[i].classList.add('animate-circle-stroke');
-					}
-					fasterTimeoutCircle.classList.add('animate-circle-stroke-less-duration');
+					var nodeCOuterCircle = document.getElementById('node-c-outer-circle');
+					nodeCOuterCircle.classList.add('animate-circle-stroke');
 
 					// need to wait for the animation on the faster node to end and then
 					// execute the next step
-					fasterTimeoutCircle.addEventListener("webkitAnimationEnd", ()=> {
-						this.animationState = AnimationState.LEADER_ELECTION_NODE_TIMED_OUT;
-						this.next();
-					},false);
+					var onNodeCAnimationEnd = () => {
+						nodeAOuterCircle.classList.add('pause-animation');
+						nodeBOuterCircle.classList.add('pause-animation');
 
-					fasterTimeoutCircle.addEventListener("animationend", ()=> {
 						this.animationState = AnimationState.LEADER_ELECTION_NODE_TIMED_OUT;
 						this.next();
-					},false);
+					}
+					nodeCOuterCircle.addEventListener("webkitAnimationEnd", onNodeCAnimationEnd,false);
+					nodeCOuterCircle.addEventListener("animationend", onNodeCAnimationEnd,false);
+
 				}, DEFAULT_DELAY);
 				break;
 			}
 			case AnimationState.LEADER_ELECTION_NODE_TIMED_OUT: {
-				var fasterTimeoutCircle = document.getElementById('node-c-circle-outter');
+				var fasterTimeoutCircle = document.getElementById('node-c-outer-circle');
 				fasterTimeoutCircle.classList.add('leader-candidate-node');
 
 				var nodeCVoteText = document.getElementById('node-c-vote-text');
@@ -67,7 +71,6 @@ class App extends Component {
 				this.changeMainText('After election timeout the follower becomes a candidate. '
 				+ 'It starts a new election term and votes for itself', () => {
 					this.animationState = AnimationState.LEADER_ELECTION_LEADER_HAS_VOTED_FOR_ITSELF;
-					// this.next();
 					setTimeout(() => this.next(), DEFAULT_DELAY);
 				});
 				break;
@@ -77,8 +80,8 @@ class App extends Component {
 				var nodeCSmallCircle1 = document.getElementById('node-c-small-circle1');
 				var animation1 = anime({
   				targets: '#node-c-small-circle1',
-  				translateX: -122,
-					translateY: -236,
+  				translateX: -132,
+					translateY: -220,
 					easing: 'linear',
 					duration: 1000,
 					direction: 'alternate',
@@ -121,9 +124,19 @@ class App extends Component {
 				var nodeCVoteText = document.getElementById('node-c-vote-text');
 				nodeCVoteText.textContent = 'Elected Leader';
 
-				var nodeCOuterCircle = document.getElementById('node-c-circle-outter');
+				var nodeCOuterCircle = document.getElementById('node-c-outer-circle');
 				nodeCOuterCircle.classList.remove('leader-candidate-node');
 				nodeCOuterCircle.classList.add('leader-node');
+
+				// hide node A and B's outer circles
+				var nodeAOuterCircle = document.getElementById('node-a-outer-circle');
+				nodeAOuterCircle.classList.remove('visibility-visible');
+				nodeAOuterCircle.classList.add('visibility-hidden');
+
+				var nodeBOuterCircle = document.getElementById('node-b-outer-circle');
+				nodeBOuterCircle.classList.remove('visibility-visible');
+				nodeBOuterCircle.classList.add('visibility-hidden');
+
 				break;
 			}
 			default:
@@ -156,26 +169,26 @@ class App extends Component {
 
 						{/* main and outer circles */}
 						<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-c-circle-outter" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
 
 						{/* text */}
 						<text x={nodeCXPos} y={nodeCYPos} fill="black">
 							<tspan x={nodeCXPos + 6} y={nodeCYPos + 66}>Node C</tspan>
 							<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Term: 0</tspan>
-							<tspan id="node-c-vote-text" class="node-vote-text visibility-hidden" x={nodeCXPos - 12} y={nodeCYPos + 104}>Vote Count: 1</tspan>
+							<tspan id="node-c-vote-text" className="node-vote-text visibility-hidden" x={nodeCXPos - 12} y={nodeCYPos + 104}>Vote Count: 1</tspan>
 						</text>
 
 						{/* node A */}
 
 						{/* main and outer circles */}
 						<circle id="node-a-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-a-circle-outter" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
 
 						{/* text */}
 						<text x={nodeAXPos} y={nodeAYPos + 66} fill="black">
 							<tspan x={nodeAXPos - 24} y={nodeAYPos + 66}>Node A</tspan>
 							<tspan x={nodeAXPos - 24} y={nodeAYPos + 84}>Term: 0</tspan>
-							<tspan id="node-a-vote-text" class="node-vote-text visibility-hidden" x={nodeAXPos - 36} y={nodeAYPos + 104}>Voted For: C</tspan>
+							<tspan id="node-a-vote-text" className="node-vote-text visibility-hidden" x={nodeAXPos - 36} y={nodeAYPos + 104}>Voted For: C</tspan>
 
 						</text>
 
@@ -183,13 +196,13 @@ class App extends Component {
 						<text x={nodeBXPos} y={nodeBYPos} fill="black">
 							<tspan x={nodeBXPos} y={nodeBYPos + 18}>Node B</tspan>
 							<tspan x={nodeBXPos} y={nodeBYPos + 36}>Term: 0</tspan>
-							<tspan id="node-b-vote-text" class="node-vote-text visibility-hidden" x={nodeBXPos - 18} y={nodeBYPos + 54}>Voted For: C</tspan>
+							<tspan id="node-b-vote-text" className="node-vote-text visibility-hidden" x={nodeBXPos - 18} y={nodeBYPos + 54}>Voted For: C</tspan>
 						</text>
 
 
 						{/* main and outer circles */}
 	  				<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-b-circle-outter" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
 					</svg>
 				</div>
 				<div id="main-text-sect">

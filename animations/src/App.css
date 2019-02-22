@@ -72,3 +72,18 @@
 .visibility-visible {
 	visibility: visible;
 }
+
+.pause-animation {
+	-webkit-animation-play-state: paused; /* Safari 4.0 - 8.0 */
+  animation-play-state: paused;
+}
+
+.animation-delay-2s {
+	animation-delay: 2s;
+}
+.animation-delay-3s {
+	animation-delay: 3s;
+}
+.animation-delay-4s {
+	animation-delay: 4s;
+}
