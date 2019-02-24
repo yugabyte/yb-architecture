@@ -8,10 +8,27 @@ var AnimationState = {
 	LEADER_ELECTION_NODE_TIMED_OUT: "LEADER_ELECTION_NODE_TIMED_OUT",
 	LEADER_ELECTION_LEADER_HAS_VOTED_FOR_ITSELF: "LEADER_ELECTION_LEADER_HAS_VOTED_FOR_ITSELF",
 	LEADER_ELECTION_LEADER_RECEIVED_VOTES_FROM_OTHER_NODES: "LEADER_ELECTION_LEADER_RECEIVED_VOTES_FROM_OTHER_NODES",
+	LOG_REPLICATION_START: "LOG_REPLICATION_START",
+	LOG_REPLICATION_INTRODUCE_CLIENT: "LOG_REPLICATION_INTRODUCE_CLIENT",
+	LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: "LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER",
+	LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS: "LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS",
 }
 
+// starting position of nodes
+const nodeAXPos = 42;
+const nodeAYPos = 324;
+const nodeCXPos = 276;
+const nodeCYPos = 324;
+const nodeBXPos = 168;
+const nodeBYPos = 18;
+const clientNodeXPos = 186;
+const clientNodeYPos = 498;
+
+const NODE_A = "NODE_A";
+const NODE_B = "NODE_B";
+
 // default delay between animations
-var DEFAULT_DELAY = 4000;
+var DEFAULT_DELAY = 2000;
 
 class App extends Component {
 	constructor(props) {
@@ -53,7 +70,8 @@ class App extends Component {
 						nodeBOuterCircle.classList.add('pause-animation');
 
 						this.animationState = AnimationState.LEADER_ELECTION_NODE_TIMED_OUT;
-						this.next();
+						// this.next();
+						this.delayedNext(100);
 					}
 					nodeCOuterCircle.addEventListener("webkitAnimationEnd", onNodeCAnimationEnd,false);
 					nodeCOuterCircle.addEventListener("animationend", onNodeCAnimationEnd,false);
@@ -71,45 +89,46 @@ class App extends Component {
 				this.changeMainText('After election timeout the follower becomes a candidate. '
 				+ 'It starts a new election term and votes for itself', () => {
 					this.animationState = AnimationState.LEADER_ELECTION_LEADER_HAS_VOTED_FOR_ITSELF;
-					setTimeout(() => this.next(), DEFAULT_DELAY);
+					this.delayedNext();
 				});
 				break;
 			}
 			case AnimationState.LEADER_ELECTION_LEADER_HAS_VOTED_FOR_ITSELF: {
 				// send "request vote" to node B
-				var nodeCSmallCircle1 = document.getElementById('node-c-small-circle1');
-				var animation1 = anime({
-  				targets: '#node-c-small-circle1',
-  				translateX: -132,
-					translateY: -220,
-					easing: 'linear',
-					duration: 1000,
-					direction: 'alternate',
-					changeComplete: function(anim) {
-						nodeCSmallCircle1.classList.remove('vote-request-circle');
-						nodeCSmallCircle1.classList.add('vote-ack-circle');
-  				}
+				var messageToB = document.getElementById('node-c-message-to-b');
+				var animation1 = this.messageFromC(NODE_B, {
+					onBegin: (anim) => {
+						messageToB.classList.add('vote-request-circle')
+					},
+					onChangeComplete: (anim) => {
+						messageToB.classList.remove('vote-request-circle');
+						messageToB.classList.add('vote-ack-circle');
+					},
+					onComplete: (anim) => {
+						messageToB.classList.remove('vote-ack-circle');
+					}
 				});
 
 				// send "request vote" to node A
-				var nodeCSmallCircle2 = document.getElementById('node-c-small-circle2');
-				var animation2 = anime({
-					targets: '#node-c-small-circle2',
-					translateX: -300,
-					easing: 'linear',
-					duration: 1000,
-					direction: 'alternate',
-					changeComplete: function(anim) {
-						nodeCSmallCircle2.classList.remove('vote-request-circle');
-						nodeCSmallCircle2.classList.add('vote-ack-circle');
+				var messageToA = document.getElementById('node-c-message-to-a');
+				var animation2 = this.messageFromC(NODE_A, {
+					onBegin: (anim) => {
+						messageToA.classList.add('vote-request-circle')
+					},
+					onChangeComplete: (anim) => {
+						messageToA.classList.remove('vote-request-circle');
+						messageToA.classList.add('vote-ack-circle');
+					},
+					onComplete: (anim) => {
+						messageToA.classList.remove('vote-ack-circle');
 					}
-				});
+				})
 
 				// wait for both animations to finish before proceeding
 				Promise.all([animation1.finished, animation2.finished]).then(() => {
 					this.animationState = AnimationState.LEADER_ELECTION_LEADER_RECEIVED_VOTES_FROM_OTHER_NODES;
-					this.next();
-				})
+					this.delayedNext(100);
+				});
 				break;
 			}
 			case AnimationState.LEADER_ELECTION_LEADER_RECEIVED_VOTES_FROM_OTHER_NODES: {
@@ -130,12 +149,101 @@ class App extends Component {
 
 				// hide node A and B's outer circles
 				var nodeAOuterCircle = document.getElementById('node-a-outer-circle');
-				nodeAOuterCircle.classList.remove('visibility-visible');
-				nodeAOuterCircle.classList.add('visibility-hidden');
+				this.hideElement(nodeAOuterCircle);
 
 				var nodeBOuterCircle = document.getElementById('node-b-outer-circle');
-				nodeBOuterCircle.classList.remove('visibility-visible');
-				nodeBOuterCircle.classList.add('visibility-hidden');
+				this.hideElement(nodeBOuterCircle);
+
+				this.animationState = AnimationState.LOG_REPLICATION_START;
+				this.delayedNext();
+				break;
+			}
+			case AnimationState.LOG_REPLICATION_START: {
+				var voteTexts = document.getElementsByClassName('node-vote-text');
+				for (var i = 0; i < voteTexts.length; i++){
+					this.hideElement(voteTexts[i]);
+				}
+				this.changeMainText('Log replication ...');
+
+				this.animationState = AnimationState.LOG_REPLICATION_INTRODUCE_CLIENT;
+				this.delayedNext();
+				break;
+			}
+			case AnimationState.LOG_REPLICATION_INTRODUCE_CLIENT: {
+				this.changeMainText('Clients always communicate with the leader.');
+
+				var introClientAnimation = anime({
+					targets: '#client-node',
+					translateY: -72
+				});
+
+				introClientAnimation.finished.then(() => {
+					var clientMessage = document.getElementById('client-message');
+					this.showElement(clientMessage);
+
+					var clientMessageAnimation = anime({
+						targets: '#client-message',
+						translateX: 100,
+						translateY: -100,
+						easing: 'linear',
+						duration: 500,
+					});
+					clientMessageAnimation.finished.then(() => {
+						console.log('TODO: call next here');
+						this.animationState = AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER;
+						this.delayedNext();
+					})
+				});
+				break;
+			}
+			case AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: {
+				this.changeMainText("The log entry is currently uncommitted, so it won't update the node's value. To commit the entry the node first replicates it to the follower nodes", () => {
+					// send log messages to follower nodes
+
+					// message to Node B
+					var messageToB = document.getElementById('node-c-message-to-b');
+					var nodeBAnimation = this.messageFromC(NODE_B, {
+						onBegin: anim => {
+							messageToB.classList.add('log-message')
+						},
+						onChangeComplete: anim => {
+							messageToB.classList.remove('log-message');
+							messageToB.classList.add('log-message-ack');
+						},
+						onComplete: anim => {
+							messageToB.classList.remove('log-message-ack');
+						}
+					});
+
+					// message to Node A
+					var messageToA = document.getElementById('node-c-message-to-a');
+					var nodeAAnimation = this.messageFromC(NODE_A, {
+						onBegin: anim => {
+							messageToA.classList.add('log-message')
+						},
+						onChangeComplete: anim => {
+							messageToA.classList.remove('log-message');
+							messageToA.classList.add('log-message-ack');
+						},
+						onComplete: anim => {
+							messageToA.classList.remove('log-message-ack');
+						}
+					});
+
+					// wait for both animations to finish before proceeding
+					Promise.all([nodeBAnimation.finished, nodeAAnimation.finished]).then(() => {
+						this.animationState = AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS;
+						this.delayedNext(100);
+					});
+				});
+				break;
+			}
+			case AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS: {
+				this.changeMainText("Once the leader receives acks from majority of follower nodes, it commits the value and sets it state to '5'", () => {
+					var nodeCMainText = document.getElementById('node-c-main-text');
+					nodeCMainText.textContent = "5";
+					this.showElement(nodeCMainText);
+				});
 
 				break;
 			}
@@ -143,33 +251,72 @@ class App extends Component {
 				console.error('Unrecognized state: ' + this.animationState);
 		}
 	}
+	hideElement(element){
+		element.classList.remove('visibility-visible');
+		element.classList.add('visibility-hidden');
+	}
+	showElement(element){
+		element.classList.remove('visibility-hidden');
+		element.classList.add('visibility-visible');
+	}
+	delayedNext(delay) {
+		if (!delay) {
+			delay = DEFAULT_DELAY;
+		}
+		setTimeout(() => this.next(), delay);
+	}
 	componentDidMount() {
 		this.mainTextSect = document.getElementById('main-text-sect');
-		this.next();
+		this.delayedNext(100);
+	}
+	messageFromC(destination, params) {
+		var translateX = 0;
+		var translateY = 0;
+		var targets = "";
+		if (destination == NODE_B) {
+			translateX = -132;
+			translateY = -220;
+			targets = '#node-c-message-to-b';
+		} else {
+			targets = '#node-c-message-to-a';
+			translateX = -300;
+		}
+
+		var animation = anime({
+			targets: targets,
+			translateX: translateX,
+			translateY: translateY,
+			easing: 'linear',
+			duration: 1000,
+			direction: 'alternate',
+			begin: params.onBegin,
+			changeComplete: params.onChangeComplete,
+			complete: params.onComplete,
+		});
+		return animation;
 	}
 
   render() {
-		var nodeAXPos = 52;
-		var nodeAYPos = 324;
-
-		var nodeCXPos = 302;
-		var nodeCYPos = 324;
-
-		var nodeBXPos = 174;
-		var nodeBYPos = 18;
     return (
       <div className="App">
 				<div id="main-diagram">
-					<svg height="460" width="800">
+					<svg height="460" width="360">
+						{/* smaller circles */}
+						<circle id="node-c-message-to-b" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
+						<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
+						<circle id="client-message" className="client-message visibility-hidden" cx={clientNodeXPos} cy={clientNodeYPos - 72}/>
+						<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} />
+
 						{/* node C */}
 
-						{/* smaller circles */}
-						<circle id="node-c-small-circle1" className="node-small-circle vote-request-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-						<circle id="node-c-small-circle2" className="node-small-circle vote-request-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-
 						{/* main and outer circles */}
-						<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<g id="node-c-wrap">
+							<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+							<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+							<text id="node-c-main-text" x={nodeCXPos + 30} y={nodeCYPos + 6} className="node-text visibility-hidden" fill="black">
+								<tspan>5</tspan>
+							</text>
+						</g>
 
 						{/* text */}
 						<text x={nodeCXPos} y={nodeCYPos} fill="black">
@@ -203,6 +350,14 @@ class App extends Component {
 						{/* main and outer circles */}
 	  				<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
 						<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+
+						{/* client node */}
+						<g id="client-node">
+							<circle className="client-node" cx={clientNodeXPos} cy={clientNodeYPos} />
+							<text x={clientNodeXPos} y={clientNodeYPos + 9} className="client-node-text">
+								<tspan>5</tspan>
+							</text>
+						</g>
 					</svg>
 				</div>
 				<div id="main-text-sect">
