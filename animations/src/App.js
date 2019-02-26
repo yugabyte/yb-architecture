@@ -12,6 +12,8 @@ var AnimationState = {
 	LOG_REPLICATION_INTRODUCE_CLIENT: "LOG_REPLICATION_INTRODUCE_CLIENT",
 	LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: "LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER",
 	LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS: "LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS",
+	LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: "LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY",
+	LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: "LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER",
 }
 
 // starting position of nodes
@@ -199,39 +201,13 @@ class App extends Component {
 			case AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: {
 				this.changeMainText("The log entry is currently uncommitted, so it won't update the node's value. To commit the entry the node first replicates it to the follower nodes", () => {
 					// send log messages to follower nodes
-
-					// message to Node B
-					var messageToB = document.getElementById('node-c-message-to-b');
-					var nodeBAnimation = this.messageFromC(NODE_B, {
-						onBegin: anim => {
-							messageToB.classList.add('log-message')
-						},
-						onChangeComplete: anim => {
-							messageToB.classList.remove('log-message');
-							messageToB.classList.add('log-message-ack');
-						},
-						onComplete: anim => {
-							messageToB.classList.remove('log-message-ack');
-						}
+					var animations = this.logMessageFromLeaderToFollowers(true);
+					var animationPromises = [];
+					animations.forEach(currentAnimation => {
+						animationPromises.push(currentAnimation.finished);
 					});
-
-					// message to Node A
-					var messageToA = document.getElementById('node-c-message-to-a');
-					var nodeAAnimation = this.messageFromC(NODE_A, {
-						onBegin: anim => {
-							messageToA.classList.add('log-message')
-						},
-						onChangeComplete: anim => {
-							messageToA.classList.remove('log-message');
-							messageToA.classList.add('log-message-ack');
-						},
-						onComplete: anim => {
-							messageToA.classList.remove('log-message-ack');
-						}
-					});
-
 					// wait for both animations to finish before proceeding
-					Promise.all([nodeBAnimation.finished, nodeAAnimation.finished]).then(() => {
+					Promise.all(animationPromises).then(() => {
 						this.animationState = AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS;
 						this.delayedNext(100);
 					});
@@ -243,10 +219,42 @@ class App extends Component {
 					var nodeCMainText = document.getElementById('node-c-main-text');
 					nodeCMainText.textContent = "5";
 					this.showElement(nodeCMainText);
-				});
 
+					this.animationState = AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY;
+					this.delayedNext();
+				});
 				break;
 			}
+			case AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: {
+				this.changeMainText("The leader then notifies followers that entry is committed", () => {
+					// now we notify followers that leader has committed the entries
+					var animations = this.logMessageFromLeaderToFollowers(false);
+					var animationPromises = [];
+					animations.forEach(currentAnimation => {
+						animationPromises.push(currentAnimation.finished);
+					});
+
+					Promise.all(animationPromises).then(() => {
+						this.animationState = AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER;
+						this.delayedNext();
+					});
+				});
+				break;
+			}
+			case AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: {
+				var nodeAMainText = document.getElementById('node-a-main-text');
+				nodeAMainText.textContent = "5";
+				this.showElement(nodeAMainText);
+
+				var nodeBMainText = document.getElementById('node-b-main-text');
+				nodeBMainText.textContent = "5";
+				this.showElement(nodeBMainText);
+
+				this.changeMainText("The cluster has now come to consensus about the system state");
+				break;
+			}
+
+
 			default:
 				console.error('Unrecognized state: ' + this.animationState);
 		}
@@ -279,7 +287,7 @@ class App extends Component {
 			targets = '#node-c-message-to-b';
 		} else {
 			targets = '#node-c-message-to-a';
-			translateX = -300;
+			translateX = -270;
 		}
 
 		var animation = anime({
@@ -294,6 +302,43 @@ class App extends Component {
 			complete: params.onComplete,
 		});
 		return animation;
+	}
+
+	logMessageFromLeaderToFollowers(withAck) {
+		var sendMessage = (nodeID, node) => {
+			var animation = this.messageFromC(nodeID, {
+				onBegin: anim => {
+					node.classList.add('log-message')
+				},
+				onChangeComplete: anim => {
+					if (withAck) {
+						node.classList.remove('log-message');
+						node.classList.add('log-message-ack');
+					} else {
+						// hide the return trip
+						this.hideElement(node);
+					}
+				},
+				onComplete: anim => {
+					if (withAck) {
+						node.classList.remove('log-message-ack');
+					} else {
+						this.showElement(node);
+					}
+				}
+			});
+			return animation;
+		}
+
+		// message to Node A
+		var messageToA = document.getElementById('node-c-message-to-a');
+		var nodeAAnimation = sendMessage(NODE_A, messageToA);
+
+		// message to Node B
+		var messageToB = document.getElementById('node-c-message-to-b');
+		var nodeBAnimation = sendMessage(NODE_B, messageToB);
+
+		return [nodeAAnimation,nodeBAnimation];
 	}
 
   render() {
@@ -328,8 +373,13 @@ class App extends Component {
 						{/* node A */}
 
 						{/* main and outer circles */}
-						<circle id="node-a-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<g id="node-a-wrap">
+							<circle id="node-a-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+							<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+							<text id="node-a-main-text" x={nodeAXPos} y={nodeAYPos + 6} className="node-text visibility-hidden">
+								<tspan>5</tspan>
+							</text>
+						</g>
 
 						{/* text */}
 						<text x={nodeAXPos} y={nodeAYPos + 66} fill="black">
@@ -348,8 +398,13 @@ class App extends Component {
 
 
 						{/* main and outer circles */}
-	  				<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-						<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+						<g id="node-b-wrap">
+		  				<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+							<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+							<text id="node-b-main-text" x={nodeBXPos + 24} y={nodeBYPos + 108} className="node-text visibility-hidden">
+								<tspan>5</tspan>
+							</text>
+						</g>
 
 						{/* client node */}
 						<g id="client-node">
