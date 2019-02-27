@@ -87,3 +87,27 @@
 .animation-delay-4s {
 	animation-delay: 4s;
 }
+
+.client-node {
+	fill: #009900;
+	r: 30;
+}
+.client-node-text,
+.node-text {
+	fill: white;
+	text-anchor:middle;
+	font-size: 24px;
+}
+.client-message {
+	fill: black;
+	r: 10;
+}
+
+.log-message {
+	fill: red;
+}
+.log-message-ack {
+	fill: white;
+	stroke: red;
+	stroke-width: 3;
+}
