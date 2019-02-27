@@ -8,7 +8,7 @@ import {
   Link
 } from 'react-router-dom';
 
-import ReadOperation from './ReadOperation';
+import ReadOperationAnimation from './ReadOperationAnimation';
 
 var HelperFunctions = require('./HelperFunctions');
 
@@ -37,7 +37,8 @@ class App extends Component {
 			<Router>
 		    <div className="App">
 					<Route exact path='/' component={LeaderElection}></Route>
-          <Route exact path='/read-operation' component={ReadOperation}></Route>
+          <Route exact path='/read-operation' render={(props) => <ReadOperationAnimation {...props} type={ReadOperationAnimation.FAILURE}></Route>
+
 		    </div>
 			</Router>
     );

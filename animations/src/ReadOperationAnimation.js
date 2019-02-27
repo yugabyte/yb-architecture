@@ -4,7 +4,7 @@ import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
 
-class ReadOperation extends Component {
+class ReadOperationAnimation extends Component {
 	render() {
 		return(
 			<div>
@@ -14,4 +14,4 @@ class ReadOperation extends Component {
 	}
 }
 
-export default ReadOperation;
+export default ReadOperationAnimation;
