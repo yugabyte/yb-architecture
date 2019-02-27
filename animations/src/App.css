@@ -39,9 +39,6 @@
 	font-size: 24px;
 }
 
-.node-vote-text {
-}
-
 .node-small-circle {
 	r: 10;
 }
@@ -110,4 +107,11 @@
 	fill: white;
 	stroke: red;
 	stroke-width: 3;
+}
+
+.set-text-uncommitted {
+	fill: red;
+}
+.set-text-committed {
+	fill: black;
 }

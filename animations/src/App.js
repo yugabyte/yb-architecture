@@ -1,7 +1,16 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import anime from 'animejs/lib/anime.es.js';
+import MainDiagram from './svg/MainDiagram';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom';
+
+import ReadOperation from './ReadOperation';
+
+var HelperFunctions = require('./HelperFunctions');
 
 var AnimationState = {
 	INITIAL: "INITIAL",
@@ -16,16 +25,6 @@ var AnimationState = {
 	LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: "LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER",
 }
 
-// starting position of nodes
-const nodeAXPos = 42;
-const nodeAYPos = 324;
-const nodeCXPos = 276;
-const nodeCYPos = 324;
-const nodeBXPos = 168;
-const nodeBYPos = 18;
-const clientNodeXPos = 186;
-const clientNodeYPos = 498;
-
 const NODE_A = "NODE_A";
 const NODE_B = "NODE_B";
 
@@ -33,6 +32,19 @@ const NODE_B = "NODE_B";
 var DEFAULT_DELAY = 2000;
 
 class App extends Component {
+	render() {
+    return (
+			<Router>
+		    <div className="App">
+					<Route exact path='/' component={LeaderElection}></Route>
+          <Route exact path='/read-operation' component={ReadOperation}></Route>
+		    </div>
+			</Router>
+    );
+  }
+}
+
+class LeaderElection extends Component {
 	constructor(props) {
 		super(props);
 		this.animationState = AnimationState.INITIAL;
@@ -85,7 +97,7 @@ class App extends Component {
 				var fasterTimeoutCircle = document.getElementById('node-c-outer-circle');
 				fasterTimeoutCircle.classList.add('leader-candidate-node');
 
-				var nodeCVoteText = document.getElementById('node-c-vote-text');
+				var nodeCVoteText = document.getElementById('node-c-extra-text');
 				nodeCVoteText.classList.remove('visibility-hidden');
 
 				this.changeMainText('After election timeout the follower becomes a candidate. '
@@ -137,13 +149,13 @@ class App extends Component {
 				this.changeMainText('Once a candidate has majority of votes it becomes the leader');
 
 				// show that follower nodes have voted for the leader (Node C)
-				var nodeAVoteText = document.getElementById('node-a-vote-text');
+				var nodeAVoteText = document.getElementById('node-a-extra-text');
 				nodeAVoteText.classList.remove('visibility-hidden');
-				var nodeBVoteText = document.getElementById('node-b-vote-text');
+				var nodeBVoteText = document.getElementById('node-b-extra-text');
 				nodeBVoteText.classList.remove('visibility-hidden');
 
-				var nodeCVoteText = document.getElementById('node-c-vote-text');
-				nodeCVoteText.textContent = 'Elected Leader';
+				var nodeCVoteText = document.getElementById('node-c-extra-text');
+				nodeCVoteText.textContent = 'Leader Node';
 
 				var nodeCOuterCircle = document.getElementById('node-c-outer-circle');
 				nodeCOuterCircle.classList.remove('leader-candidate-node');
@@ -151,19 +163,19 @@ class App extends Component {
 
 				// hide node A and B's outer circles
 				var nodeAOuterCircle = document.getElementById('node-a-outer-circle');
-				this.hideElement(nodeAOuterCircle);
+				HelperFunctions.hideElement(nodeAOuterCircle);
 
 				var nodeBOuterCircle = document.getElementById('node-b-outer-circle');
-				this.hideElement(nodeBOuterCircle);
+				HelperFunctions.hideElement(nodeBOuterCircle);
 
 				this.animationState = AnimationState.LOG_REPLICATION_START;
 				this.delayedNext();
 				break;
 			}
 			case AnimationState.LOG_REPLICATION_START: {
-				var voteTexts = document.getElementsByClassName('node-vote-text');
+				var voteTexts = document.getElementsByClassName('node-extra-text');
 				for (var i = 0; i < voteTexts.length; i++){
-					this.hideElement(voteTexts[i]);
+					HelperFunctions.hideElement(voteTexts[i]);
 				}
 				this.changeMainText('Log replication ...');
 
@@ -181,17 +193,24 @@ class App extends Component {
 
 				introClientAnimation.finished.then(() => {
 					var clientMessage = document.getElementById('client-message');
-					this.showElement(clientMessage);
+					HelperFunctions.showElement(clientMessage);
 
 					var clientMessageAnimation = anime({
 						targets: '#client-message',
 						translateX: 100,
 						translateY: -100,
 						easing: 'linear',
-						duration: 500,
+						duration: 800,
 					});
 					clientMessageAnimation.finished.then(() => {
-						console.log('TODO: call next here');
+						HelperFunctions.setSVGText(
+							{
+								targetId: 'node-c-extra-text',
+								text: "SET 5",
+								addCSSClass: "set-text-uncommitted",
+								showElement: true,
+							}
+						);
 						this.animationState = AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER;
 						this.delayedNext();
 					})
@@ -208,6 +227,24 @@ class App extends Component {
 					});
 					// wait for both animations to finish before proceeding
 					Promise.all(animationPromises).then(() => {
+						// show uncommitted log entries for follower nodes
+						HelperFunctions.setSVGText(
+							{
+								targetId: 'node-a-extra-text',
+								text: "SET 5",
+								addCSSClass: "set-text-uncommitted",
+								showElement: true,
+							}
+						);
+						HelperFunctions.setSVGText(
+							{
+								targetId: 'node-b-extra-text',
+								text: "SET 5",
+								addCSSClass: "set-text-uncommitted",
+								showElement: true,
+							}
+						);
+
 						this.animationState = AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS;
 						this.delayedNext(100);
 					});
@@ -216,9 +253,20 @@ class App extends Component {
 			}
 			case AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS: {
 				this.changeMainText("Once the leader receives acks from majority of follower nodes, it commits the value and sets it state to '5'", () => {
-					var nodeCMainText = document.getElementById('node-c-main-text');
-					nodeCMainText.textContent = "5";
-					this.showElement(nodeCMainText);
+					// since leader has received acks from both followers, mark entry as committed
+					HelperFunctions.setSVGText(
+						{
+							targetId: 'node-c-extra-text',
+							addCSSClass: "set-text-committed"
+						}
+					);
+					HelperFunctions.setSVGText(
+						{
+							targetId: 'node-c-main-text',
+							text: "5",
+							showElement: true,
+						}
+					);
 
 					this.animationState = AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY;
 					this.delayedNext();
@@ -236,19 +284,40 @@ class App extends Component {
 
 					Promise.all(animationPromises).then(() => {
 						this.animationState = AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER;
-						this.delayedNext();
+						this.delayedNext(100);
 					});
 				});
 				break;
 			}
 			case AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: {
-				var nodeAMainText = document.getElementById('node-a-main-text');
-				nodeAMainText.textContent = "5";
-				this.showElement(nodeAMainText);
+				// commit entries for follower nodes
+				HelperFunctions.setSVGText({
+						targetId: 'node-a-extra-text',
+						addCSSClass: "set-text-committed"
+					});
+				HelperFunctions.setSVGText({
+						targetId: 'node-a-main-text',
+						text: "5",
+						showElement: true,
+				});
 
-				var nodeBMainText = document.getElementById('node-b-main-text');
-				nodeBMainText.textContent = "5";
-				this.showElement(nodeBMainText);
+				HelperFunctions.setSVGText({
+						targetId: 'node-b-extra-text',
+						addCSSClass: "set-text-committed"
+				});
+				HelperFunctions.setSVGText({
+					targetId: 'node-b-main-text',
+					text: "5",
+					showElement: true,
+				});
+
+				// var nodeAMainText = document.getElementById('node-a-main-text');
+				// nodeAMainText.textContent = "5";
+				// HelperFunctions.showElement(nodeAMainText);
+				//
+				// var nodeBMainText = document.getElementById('node-b-main-text');
+				// nodeBMainText.textContent = "5";
+				// HelperFunctions.showElement(nodeBMainText);
 
 				this.changeMainText("The cluster has now come to consensus about the system state");
 				break;
@@ -259,14 +328,7 @@ class App extends Component {
 				console.error('Unrecognized state: ' + this.animationState);
 		}
 	}
-	hideElement(element){
-		element.classList.remove('visibility-visible');
-		element.classList.add('visibility-hidden');
-	}
-	showElement(element){
-		element.classList.remove('visibility-hidden');
-		element.classList.add('visibility-visible');
-	}
+
 	delayedNext(delay) {
 		if (!delay) {
 			delay = DEFAULT_DELAY;
@@ -316,14 +378,14 @@ class App extends Component {
 						node.classList.add('log-message-ack');
 					} else {
 						// hide the return trip
-						this.hideElement(node);
+						HelperFunctions.hideElement(node);
 					}
 				},
 				onComplete: anim => {
 					if (withAck) {
 						node.classList.remove('log-message-ack');
 					} else {
-						this.showElement(node);
+						HelperFunctions.showElement(node);
 					}
 				}
 			});
@@ -343,82 +405,14 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
+	    <div className="App">
 				<div id="main-diagram">
-					<svg height="460" width="360">
-						{/* smaller circles */}
-						<circle id="node-c-message-to-b" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-						<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-						<circle id="client-message" className="client-message visibility-hidden" cx={clientNodeXPos} cy={clientNodeYPos - 72}/>
-						<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} />
-
-						{/* node C */}
-
-						{/* main and outer circles */}
-						<g id="node-c-wrap">
-							<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-							<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-							<text id="node-c-main-text" x={nodeCXPos + 30} y={nodeCYPos + 6} className="node-text visibility-hidden" fill="black">
-								<tspan>5</tspan>
-							</text>
-						</g>
-
-						{/* text */}
-						<text x={nodeCXPos} y={nodeCYPos} fill="black">
-							<tspan x={nodeCXPos + 6} y={nodeCYPos + 66}>Node C</tspan>
-							<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Term: 0</tspan>
-							<tspan id="node-c-vote-text" className="node-vote-text visibility-hidden" x={nodeCXPos - 12} y={nodeCYPos + 104}>Vote Count: 1</tspan>
-						</text>
-
-						{/* node A */}
-
-						{/* main and outer circles */}
-						<g id="node-a-wrap">
-							<circle id="node-a-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-							<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-							<text id="node-a-main-text" x={nodeAXPos} y={nodeAYPos + 6} className="node-text visibility-hidden">
-								<tspan>5</tspan>
-							</text>
-						</g>
-
-						{/* text */}
-						<text x={nodeAXPos} y={nodeAYPos + 66} fill="black">
-							<tspan x={nodeAXPos - 24} y={nodeAYPos + 66}>Node A</tspan>
-							<tspan x={nodeAXPos - 24} y={nodeAYPos + 84}>Term: 0</tspan>
-							<tspan id="node-a-vote-text" className="node-vote-text visibility-hidden" x={nodeAXPos - 36} y={nodeAYPos + 104}>Voted For: C</tspan>
-
-						</text>
-
-						{/* node B */}
-						<text x={nodeBXPos} y={nodeBYPos} fill="black">
-							<tspan x={nodeBXPos} y={nodeBYPos + 18}>Node B</tspan>
-							<tspan x={nodeBXPos} y={nodeBYPos + 36}>Term: 0</tspan>
-							<tspan id="node-b-vote-text" className="node-vote-text visibility-hidden" x={nodeBXPos - 18} y={nodeBYPos + 54}>Voted For: C</tspan>
-						</text>
-
-
-						{/* main and outer circles */}
-						<g id="node-b-wrap">
-		  				<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-							<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-							<text id="node-b-main-text" x={nodeBXPos + 24} y={nodeBYPos + 108} className="node-text visibility-hidden">
-								<tspan>5</tspan>
-							</text>
-						</g>
-
-						{/* client node */}
-						<g id="client-node">
-							<circle className="client-node" cx={clientNodeXPos} cy={clientNodeYPos} />
-							<text x={clientNodeXPos} y={clientNodeYPos + 9} className="client-node-text">
-								<tspan>5</tspan>
-							</text>
-						</g>
-					</svg>
+					<MainDiagram/>
 				</div>
 				<div id="main-text-sect">
 				</div>
-      </div>
-    );
+	    </div>
+	  );
   }
 
 	onButtonClick() {
