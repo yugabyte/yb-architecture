@@ -123,7 +123,8 @@ class LeaderElection extends Component {
 					},
 					onComplete: (anim) => {
 						messageToB.classList.remove('vote-ack-circle');
-					}
+					},
+					alternate: true,
 				});
 
 				// send "request vote" to node A
@@ -138,7 +139,8 @@ class LeaderElection extends Component {
 					},
 					onComplete: (anim) => {
 						messageToA.classList.remove('vote-ack-circle');
-					}
+					},
+					alternate: true,
 				})
 
 				// wait for both animations to finish before proceeding
