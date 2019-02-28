@@ -3,12 +3,239 @@ import React, { Component } from 'react';
 import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
+import {Constants} from './constants';
 
-class ReadOperationAnimation extends Component {
+var HelperFunctions = require('./HelperFunctions');
+
+
+const ANIMATION_STATE_INITIAL = "READ_OPERATION_INITIAL";
+const ANIMATION_STATE_CLIENT_INTRODUCED = "ANIMATION_STATE_CLIENT_INTRODUCED";
+const ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT = "ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT";
+const ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS = "ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS";
+const ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS = "ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS";
+const ANIMATION_STATE_NODE_C_PARTITIONED = "ANIMATION_STATE_NODE_C_PARTITIONED";
+const ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER = "ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER";
+const ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT = "ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT";
+const ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B = "ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B";
+const ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT = "ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT";
+const ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C = "ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C";
+
+const SET_VALUE1="V1";
+const SET_VALUE2="V2";
+
+export var ReadOperationType = {
+	FAILURE: "failure_operation",
+};
+
+export class ReadOperationAnimation extends Component {
+	constructor(props) {
+		super(props);
+		this.animationState = ANIMATION_STATE_INITIAL;
+	}
+
+	componentDidMount() {
+		this.mainTextSect = document.getElementById('main-text-sect');
+		HelperFunctions.delayedNext(this,100);
+	}
+
+	next() {
+		switch(this.animationState) {
+			case ANIMATION_STATE_INITIAL: {
+				//////////////////// initial setup ////////////////////
+				// make Node C the Leader
+				var nodeC = document.getElementById('node-c-circle');
+				nodeC.classList.add('leader-node');
+
+				// hide all outer circles (TODO: revisit this approach)
+				var nodeOuterCircles = document.getElementsByClassName('node-outer-circle');
+				for (var i = 0; i < nodeOuterCircles.length; i++){
+					HelperFunctions.hideElement(nodeOuterCircles[i]);
+				}
+				//////////////////////////////////////////////////////
+				this.changeMainText('Read operation: Why performance suffers...', () => {
+					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
+					introduceClientAnimation.finished.then(() => {
+						this.animationState = ANIMATION_STATE_CLIENT_INTRODUCED;
+						HelperFunctions.delayedNext(this, 100);
+					})
+				});
+				break;
+			}
+			case ANIMATION_STATE_CLIENT_INTRODUCED: {
+				this.changeMainText('Client performs a set operation on leader, which starts a Raft round to replicate date data to its followers',() => {
+					// client sends a message to the leader
+					var animation = HelperFunctions.clientMessageToNodeC();
+					animation.finished.then(() => {
+						this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT;
+						HelperFunctions.delayedNext(this, 100);
+					});
+				});
+				break;
+			}
+			case ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT: {
+				// leader sends log message to followers and receive an ack from both
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(true);
+				var finishPromises = HelperFunctions.getFinishPromises(animations);
+
+				// wait for both the animations to complete
+				Promise.all(finishPromises).then(() => {
+					// mark entry commited on leader
+					HelperFunctions.setSVGText({targetId: "node-c-main-text",text:SET_VALUE1,showElement: true});
+
+					this.animationState = ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS;
+					HelperFunctions.delayedNext(this, 100);
+				});
+				break;
+			}
+			case ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS: {
+				// next leader notifies followers that it has commited the entry
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false);
+				var finishPromises = HelperFunctions.getFinishPromises(animations);
+
+				Promise.all(finishPromises).then(() => {
+					// mark entry commited on both followers
+					HelperFunctions.setSVGText({targetId: "node-a-main-text",text:SET_VALUE1,showElement: true});
+					HelperFunctions.setSVGText({targetId: "node-b-main-text",text:SET_VALUE1,showElement: true});
+
+					this.animationState = ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS;
+					HelperFunctions.delayedNext(this, 100);
+				});
+
+				break;
+			}
+			case ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS: {
+				this.changeMainText('Now imagine the Leader C gets network partitioned from it followers A and B',() => {
+					// Partition Node C from followers
+					var nodeCPartition = document.getElementById('node-c-partition');
+					HelperFunctions.showElement(nodeCPartition);
+
+					this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
+					HelperFunctions.delayedNext(this,100);
+				});
+				break;
+			}
+			case ANIMATION_STATE_NODE_C_PARTITIONED: {
+				this.changeMainText('This results in A and B electing a new leader, say A', () => {
+					var nodeA = document.getElementById('node-a-circle');
+					nodeA.classList.add('leader-node');
+
+					this.animationState = ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER;
+					HelperFunctions.delayedNext(this,1000);
+				});
+				break;
+			}
+			case ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER: {
+				this.changeMainText('The client performs another operation: SET k=' + SET_VALUE2, () => {
+					HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE2 });
+
+					var animation = HelperFunctions.clientMessageToNodeA();
+					animation.finished.then(() => {
+
+						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT;
+						HelperFunctions.delayedNext(this, 100);
+					})
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT: {
+				this.changeMainText('This reaches A, which will replicate it to B, following the log replication process', () => {
+					HelperFunctions.setSVGText({
+							targetId: 'node-a-extra-text',
+							text: "SET " + SET_VALUE2,
+							addCSSClass: "set-text-uncommitted",
+							showElement: true,
+					});
+					var animation = HelperFunctions.logMessageFromAToB(true);
+					animation.finished.then(() => {
+						// mark A's SET operation as commited
+						HelperFunctions.setSVGText({
+								targetId: 'node-a-extra-text',
+								addCSSClass: "set-text-committed",
+						});
+						HelperFunctions.setSVGText({
+								targetId: 'node-a-main-text',
+								text: SET_VALUE2
+						});
+
+						// show B's set operation as uncommited
+						HelperFunctions.setSVGText({
+								targetId: 'node-b-extra-text',
+								text: "SET " + SET_VALUE2,
+								addCSSClass: "set-text-uncommitted",
+								showElement: true,
+						});
+						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B;
+						HelperFunctions.delayedNext(this, 100);
+					});
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B: {
+				// send commit confirmation back to B
+				var animation = HelperFunctions.logMessageFromAToB(false);
+				animation.finished.then(() => {
+					// mark B's SET operation as commited
+					HelperFunctions.setSVGText({
+							targetId: 'node-b-extra-text',
+							addCSSClass: "set-text-committed",
+					});
+					HelperFunctions.setSVGText({
+							targetId: 'node-b-main-text',
+							text: SET_VALUE2
+					});
+				});
+
+				this.changeMainText('Since A has applied the change, it responds to client with success', () => {
+					var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A,Constants.CLIENT_NODE, false);
+
+					messageToClientAnimation.finished.then(() => {
+						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT;
+						HelperFunctions.delayedNext(this, 1000);
+					})
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT: {
+				this.changeMainText('Next, the client tries to read key K from C.',() => {
+					var animation = HelperFunctions.clientMessageToNodeC();
+					animation.finished.then(() => {
+						this.animationState = ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C;
+						HelperFunctions.delayedNext(this, 1000);
+					});
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C: {
+				this.changeMainText('C thinks it is still the leader and responds with value: ' + SET_VALUE1 + ', which is stale', () => {
+
+					var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE, false);
+					animation.finished.then(() => {
+						HelperFunctions.setSVGText({
+							targetId:'client-node-main-text',
+							text: SET_VALUE1,
+							addCSSClass: 'stale-data-text',
+						});
+					})
+				});
+				break;
+			}
+			default:
+				console.error('Unrecognized state: ' + this.animationState);
+		}
+	}
+
+	changeMainText(text, onComplete) {
+		HelperFunctions.setTextWithAnimation(this.mainTextSect, text, onComplete);
+	}
+
 	render() {
 		return(
 			<div>
-				<h1>TODO: Read Operation</h1>
+				<div id="main-diagram">
+					<MainDiagram/>
+				</div>
+				<div id="main-text-sect">
+				</div>
 			</div>
 		)
 	}
