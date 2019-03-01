@@ -1,14 +1,41 @@
 import React, { Component } from 'react';
 
 // starting position of nodes
-const nodeAXPos = 42;
-const nodeAYPos = 324;
+const nodeABaseXPos = 42;
+const nodeABaseYPos = 324;
+
 const nodeCXPos = 276;
 const nodeCYPos = 324;
 const nodeBXPos = 168;
 const nodeBYPos = 18;
 const clientNodeXPos = 186;
 const clientNodeYPos = 498;
+
+export const clientNodePositions = {
+	mainText: {
+		x: clientNodeXPos,
+		y: clientNodeYPos + 9
+	},
+	clientMessage: {
+		x: clientNodeXPos,
+		y: clientNodeYPos - 72
+	},
+}
+
+export const nodeAPositions = {
+	base: {
+		x: nodeABaseXPos,
+		y: nodeABaseYPos
+	},
+	messageToB: {
+		x: nodeABaseXPos + 6,
+		y: nodeABaseYPos
+	},
+	messageToClient: {
+		x: nodeABaseXPos + 6,
+		y: nodeABaseYPos
+	}
+}
 
 class MainDiagram extends Component {
 
@@ -18,15 +45,24 @@ class MainDiagram extends Component {
 				{/* smaller circles */}
 				<circle id="node-c-message-to-b" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
 				<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-				<circle id="client-message" className="client-message visibility-hidden" cx={clientNodeXPos} cy={clientNodeYPos - 72}/>
+				<circle id="node-c-message-to-client" className="node-small-circle visibility-hidden" cx={nodeCXPos+32} cy={nodeCYPos} />
+
+				<circle id="client-message" className="client-message visibility-hidden" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
+
 				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} />
+
+				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
+				<circle id="node-a-message-to-client" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToClient.x} cy={nodeAPositions.messageToClient.y} />
 
 				{/* node C */}
 
+				{/* partition around C */}
+				<circle id="node-c-partition" className="node-partition visibility-hidden" cx={nodeCXPos+32} cy={nodeCYPos} />
+
 				{/* main and outer circles */}
 				<g id="node-c-wrap">
-					<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
 					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
 					<text id="node-c-main-text" x={nodeCXPos + 30} y={nodeCYPos + 6} className="node-text visibility-hidden" fill="black">
 						<tspan>5</tspan>
 					</text>
@@ -34,27 +70,27 @@ class MainDiagram extends Component {
 
 				{/* text */}
 				<text x={nodeCXPos} y={nodeCYPos} fill="black">
-					<tspan x={nodeCXPos + 6} y={nodeCYPos + 66}>Node C</tspan>
-					<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Term: 0</tspan>
-					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCXPos + 6} y={nodeCYPos + 104}>Vote Count: 1</tspan>
+					<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Node C</tspan>
+					<tspan x={nodeCXPos + 6} y={nodeCYPos + 102}>Term: 0</tspan>
+					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCXPos + 6} y={nodeCYPos + 120}>Vote Count: 1</tspan>
 				</text>
 
 				{/* node A */}
 
 				{/* main and outer circles */}
 				<g id="node-a-wrap">
-					<circle id="node-a-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAXPos} cy={nodeAYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-					<text id="node-a-main-text" x={nodeAXPos} y={nodeAYPos + 6} className="node-text visibility-hidden">
+					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-a-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<text id="node-a-main-text" x={nodeAPositions.base.x} y={nodeAPositions.base.y + 6} className="node-text visibility-hidden">
 						<tspan>5</tspan>
 					</text>
 				</g>
 
 				{/* text */}
-				<text x={nodeAXPos} y={nodeAYPos + 66} fill="black">
-					<tspan x={nodeAXPos - 24} y={nodeAYPos + 66}>Node A</tspan>
-					<tspan x={nodeAXPos - 24} y={nodeAYPos + 84}>Term: 0</tspan>
-					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAXPos - 24} y={nodeAYPos + 104}>Voted For: C</tspan>
+				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
+					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 84}>Node A</tspan>
+					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 102}>Term: 0</tspan>
+					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 120}>Voted For: C</tspan>
 
 				</text>
 
@@ -78,7 +114,7 @@ class MainDiagram extends Component {
 				{/* client node */}
 				<g id="client-node">
 					<circle className="client-node" cx={clientNodeXPos} cy={clientNodeYPos} />
-					<text x={clientNodeXPos} y={clientNodeYPos + 9} className="client-node-text">
+					<text id="client-node-main-text" x={clientNodeXPos} y={clientNodeYPos + 9} className="client-node-text">
 						<tspan>5</tspan>
 					</text>
 				</g>
