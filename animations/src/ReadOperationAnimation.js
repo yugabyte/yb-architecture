@@ -22,6 +22,9 @@ const ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C = "ANIMATION_ST
 
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
+function setValueText(value) {
+	return "SET " + value;
+}
 
 export var ReadOperationType = {
 	FAILURE: "failure_operation",
@@ -64,8 +67,17 @@ export class ReadOperationAnimation extends Component {
 			case ANIMATION_STATE_CLIENT_INTRODUCED: {
 				this.changeMainText('Client performs a set operation on leader, which starts a Raft round to replicate date data to its followers',() => {
 					// client sends a message to the leader
-					var animation = HelperFunctions.clientMessageToNodeC();
+					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_C,false, setValueText(SET_VALUE1));
+
 					animation.finished.then(() => {
+						// show entry as uncommited on Node C
+						// HelperFunctions.setSVGText({
+						// 	targetId: 'node-c-extra-text',
+						// 	text: setValueText(SET_VALUE1),
+						// 	addCSSClass: "set-text-uncommitted",
+						// 	showElement: true,
+						// });
+
 						this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT;
 						HelperFunctions.delayedNext(this, 100);
 					});
@@ -74,13 +86,16 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT: {
 				// leader sends log message to followers and receive an ack from both
-				var animations = HelperFunctions.logMessageFromLeaderToFollowers(true);
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(true, setValueText(SET_VALUE1));
 				var finishPromises = HelperFunctions.getFinishPromises(animations);
 
 				// wait for both the animations to complete
 				Promise.all(finishPromises).then(() => {
 					// mark entry commited on leader
-					HelperFunctions.setSVGText({targetId: "node-c-main-text",text:SET_VALUE1,showElement: true});
+					HelperFunctions.setSVGText({
+							targetId: "node-c-main-text",
+							text:SET_VALUE1,
+							showElement: true});
 
 					this.animationState = ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS;
 					HelperFunctions.delayedNext(this, 100);
@@ -89,8 +104,11 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS: {
 				// next leader notifies followers that it has commited the entry
-				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false);
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true);
 				var finishPromises = HelperFunctions.getFinishPromises(animations);
+
+				// and notify client as well
+				HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
 
 				Promise.all(finishPromises).then(() => {
 					// mark entry commited on both followers
@@ -106,7 +124,7 @@ export class ReadOperationAnimation extends Component {
 			case ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS: {
 				this.changeMainText('Now imagine the Leader C gets network partitioned from it followers A and B',() => {
 					// Partition Node C from followers
-					var nodeCPartition = document.getElementById('node-c-partition');
+					var nodeCPartition = document.getElementById('node-c-partition-wrap');
 					HelperFunctions.showElement(nodeCPartition);
 
 					this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
@@ -118,6 +136,8 @@ export class ReadOperationAnimation extends Component {
 				this.changeMainText('This results in A and B electing a new leader, say A', () => {
 					var nodeA = document.getElementById('node-a-circle');
 					nodeA.classList.add('leader-node');
+					HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 1"});
+					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
 
 					this.animationState = ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER;
 					HelperFunctions.delayedNext(this,1000);
@@ -128,9 +148,10 @@ export class ReadOperationAnimation extends Component {
 				this.changeMainText('The client performs another operation: SET k=' + SET_VALUE2, () => {
 					HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE2 });
 
-					var animation = HelperFunctions.clientMessageToNodeA();
-					animation.finished.then(() => {
+					// var animation = HelperFunctions.clientMessageToNodeA();
+					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_A,false, setValueText(SET_VALUE2));
 
+					animation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT;
 						HelperFunctions.delayedNext(this, 100);
 					})
@@ -139,31 +160,14 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT: {
 				this.changeMainText('This reaches A, which will replicate it to B, following the log replication process', () => {
-					HelperFunctions.setSVGText({
-							targetId: 'node-a-extra-text',
-							text: "SET " + SET_VALUE2,
-							addCSSClass: "set-text-uncommitted",
-							showElement: true,
-					});
-					var animation = HelperFunctions.logMessageFromAToB(true);
+					var animation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, setValueText(SET_VALUE2));
 					animation.finished.then(() => {
 						// mark A's SET operation as commited
-						HelperFunctions.setSVGText({
-								targetId: 'node-a-extra-text',
-								addCSSClass: "set-text-committed",
-						});
 						HelperFunctions.setSVGText({
 								targetId: 'node-a-main-text',
 								text: SET_VALUE2
 						});
 
-						// show B's set operation as uncommited
-						HelperFunctions.setSVGText({
-								targetId: 'node-b-extra-text',
-								text: "SET " + SET_VALUE2,
-								addCSSClass: "set-text-uncommitted",
-								showElement: true,
-						});
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B;
 						HelperFunctions.delayedNext(this, 100);
 					});
@@ -172,7 +176,7 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B: {
 				// send commit confirmation back to B
-				var animation = HelperFunctions.logMessageFromAToB(false);
+				var animation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false);
 				animation.finished.then(() => {
 					// mark B's SET operation as commited
 					HelperFunctions.setSVGText({
@@ -185,19 +189,22 @@ export class ReadOperationAnimation extends Component {
 					});
 				});
 
-				this.changeMainText('Since A has applied the change, it responds to client with success', () => {
-					var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A,Constants.CLIENT_NODE, false);
+				// notify client as well
+				var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);
 
-					messageToClientAnimation.finished.then(() => {
+				messageToClientAnimation.finished.then(() => {
+					this.changeMainText('Since A has applied the change, it responds to client with success', () => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT;
 						HelperFunctions.delayedNext(this, 1000);
-					})
+
+					});
 				});
 				break;
 			}
 			case ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT: {
 				this.changeMainText('Next, the client tries to read key K from C.',() => {
-					var animation = HelperFunctions.clientMessageToNodeC();
+					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_C,false);
+
 					animation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C;
 						HelperFunctions.delayedNext(this, 1000);

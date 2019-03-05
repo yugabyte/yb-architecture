@@ -9,10 +9,12 @@ import {
 } from 'react-router-dom';
 
 import {ReadOperationAnimation,ReadOperationType} from './ReadOperationAnimation';
+import RaftReadOperationAnimation from './RaftReadOperationAnimation';
 
 import {Constants} from './constants';
 var HelperFunctions = require('./HelperFunctions');
 
+const SET_VALUE1 = "5";
 
 var AnimationState = {
 	INITIAL: "INITIAL",
@@ -40,6 +42,7 @@ class App extends Component {
 		    <div className="App">
 					<Route exact path='/' component={LeaderElection}></Route>
           <Route exact path='/read-operation' render={(props) => <ReadOperationAnimation {...props} operationType={ReadOperationType.FAILURE}/> }></Route>
+					<Route exact path="/read-operation-in-raft" render={(props) => <RaftReadOperationAnimation {...props} /> }></Route>
 
 		    </div>
 			</Router>
@@ -222,31 +225,11 @@ class LeaderElection extends Component {
 			case AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: {
 				this.changeMainText("The log entry is currently uncommitted, so it won't update the node's value. To commit the entry the node first replicates it to the follower nodes", () => {
 					// send log messages to follower nodes
-					var animations = HelperFunctions.logMessageFromLeaderToFollowers(true);
-					var animationPromises = [];
-					animations.forEach(currentAnimation => {
-						animationPromises.push(currentAnimation.finished);
-					});
+					var animations = HelperFunctions.logMessageFromLeaderToFollowers(true, "SET " + SET_VALUE1);
+					var animationPromises = HelperFunctions.getFinishPromises(animations);
+
 					// wait for both animations to finish before proceeding
 					Promise.all(animationPromises).then(() => {
-						// show uncommitted log entries for follower nodes
-						HelperFunctions.setSVGText(
-							{
-								targetId: 'node-a-extra-text',
-								text: "SET 5",
-								addCSSClass: "set-text-uncommitted",
-								showElement: true,
-							}
-						);
-						HelperFunctions.setSVGText(
-							{
-								targetId: 'node-b-extra-text',
-								text: "SET 5",
-								addCSSClass: "set-text-uncommitted",
-								showElement: true,
-							}
-						);
-
 						this.animationState = AnimationState.LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS;
 						HelperFunctions.delayedNext(this,100);
 					});
@@ -270,14 +253,15 @@ class LeaderElection extends Component {
 				break;
 			}
 			case AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: {
-				this.changeMainText("The leader then notifies followers that entry is committed", () => {
-					// now we notify followers that leader has committed the entries
-					var animations = HelperFunctions.logMessageFromLeaderToFollowers(false);
-					var animationPromises = [];
-					animations.forEach(currentAnimation => {
-						animationPromises.push(currentAnimation.finished);
-					});
+				this.changeMainText("The leader then notifies followers and the client that entry is committed", () => {
+					// notify followers that leader has committed the entries
+					var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true);
+					var animationPromises = HelperFunctions.getFinishPromises(animations);
 
+					// and notify client as well
+					HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
+
+					//// follower message animation on finish
 					Promise.all(animationPromises).then(() => {
 						this.animationState = AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER;
 						HelperFunctions.delayedNext(this,100);
@@ -288,22 +272,14 @@ class LeaderElection extends Component {
 			case AnimationState.LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: {
 				// commit entries for follower nodes
 				HelperFunctions.setSVGText({
-						targetId: 'node-a-extra-text',
-						addCSSClass: "set-text-committed"
-					});
-				HelperFunctions.setSVGText({
 						targetId: 'node-a-main-text',
-						text: "5",
+						text: SET_VALUE1,
 						showElement: true,
 				});
 
 				HelperFunctions.setSVGText({
-						targetId: 'node-b-extra-text',
-						addCSSClass: "set-text-committed"
-				});
-				HelperFunctions.setSVGText({
 					targetId: 'node-b-main-text',
-					text: "5",
+					text: SET_VALUE1,
 					showElement: true,
 				});
 
