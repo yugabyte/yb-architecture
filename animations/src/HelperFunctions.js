@@ -19,6 +19,9 @@ export function setSVGText(params) {
 	if (params.addCSSClass) {
 		target.classList.add(params.addCSSClass);
 	}
+	if (params.removeCSSClass) {
+		target.classList.remove(params.removeCSSClass);
+	}
 	if (params.showElement) {
 		showElement(target);
 	}
@@ -76,54 +79,73 @@ export function introduceClient(clientTextValue) {
 	return animation;
 }
 
-export function clientMessageToNodeC() {
-	var clientMessage = document.getElementById('client-message');
+
+// export function clientMessageToNodeC(params) {
+// 	var clientMessage = document.getElementById('client-message');
+// 	var animation = anime({
+// 		targets: clientMessage,
+// 		translateX: 100,
+// 		translateY: -100,
+// 		easing: 'linear',
+// 		duration: 800,
+// 		begin: params.onBegin,
+// 		complete: params.onComplete
+// 	});
+// 	return animation
+// }
+export function messageFromClient(destination, params) {
+	var messageElement = document.getElementById('client-message');
+	var translateX = 0;
+	var translateY = 0;
+
+	switch (destination) {
+		case Constants.NODE_C: {
+			translateX = 100;
+			translateY = -100;
+			break;
+		}
+		case Constants.NODE_A: {
+			translateX = -100;
+			translateY = -100;
+			break;
+		}
+		default: {
+			console.log('messageFromClient: Unrecognized destination: ' + destination);
+			return;
+		}
+	}
+
 	var animation = anime({
-		targets: clientMessage,
-		translateX: 100,
-		translateY: -100,
+		targets: messageElement,
+		translateX: translateX,
+		translateY: translateY,
 		easing: 'linear',
 		duration: 800,
-		begin: anime => {
-			showElement(clientMessage);
-		},
-		complete: anime => {
-			hideElement(clientMessage);
-			clientMessage.style.transform = 'none';
-		}
+		begin: params.onBegin,
+		complete: params.onComplete,
+		changeComplete: params.onChangeComplete,
 	});
 	return animation;
 }
-export function clientMessageToNodeA() {
-	var clientMessage = document.getElementById('client-message');
-	var animation = anime({
-		targets: clientMessage,
-		translateX: -100,
-		translateY: -100,
-		easing: 'linear',
-		duration: 800,
-		begin: anime => {
-			showElement(clientMessage);
-		},
-		complete: anime => {
-			hideElement(clientMessage);
-			clientMessage.style.transform = 'none';
-		}
-	});
-	return animation;
-}
+
 export function logMessageFromAToB(withAck) {
 	return sendLogMessage(Constants.NODE_A, Constants.NODE_B, withAck);
 }
 
-export function sendLogMessage(fromNode, toNode, withAck) {
+export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
+	console.log('FromNode: ' + fromNode + " toNode: " + toNode + " withAck: " + withAck + " value: " + value + " commitValue: " + commitValue);
 	var method = null;
 	var messageElement = null;
+	var textElementId = null;
+	var sourceNodeTextElementId = null;
 	switch(fromNode) {
 		case Constants.NODE_A: {
 			method = messageFromA;
+			sourceNodeTextElementId = 'node-a-extra-text';
+
 			if(toNode == Constants.NODE_B) {
 				messageElement = document.getElementById('node-a-message-to-b');
+				textElementId = 'node-b-extra-text';
 			} else if (toNode == Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-a-message-to-client');
 			}
@@ -131,12 +153,30 @@ export function sendLogMessage(fromNode, toNode, withAck) {
 		}
 		case Constants.NODE_C: {
 			method = messageFromC;
+			sourceNodeTextElementId = 'node-c-extra-text';
+
 			if (toNode == Constants.NODE_A) {
 				messageElement = document.getElementById('node-c-message-to-a');
+				textElementId = 'node-a-extra-text';
 			} else if (toNode == Constants.NODE_B) {
 				messageElement = document.getElementById('node-c-message-to-b');
+				textElementId = 'node-b-extra-text';
 			} else if (toNode == Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-c-message-to-client');
+			}
+			break;
+		}
+		case Constants.CLIENT_NODE: {
+			method = messageFromClient;
+			if (toNode == Constants.NODE_A) {
+				messageElement = document.getElementById('client-message');
+				textElementId = 'node-a-extra-text';
+			} else if (toNode == Constants.NODE_B) {
+				messageElement = document.getElementById('client-message');
+				textElementId = 'node-b-extra-text';
+			} else if (toNode == Constants.NODE_C) {
+				messageElement = document.getElementById('client-message');
+				textElementId = 'node-c-extra-text';
 			}
 			break;
 		}
@@ -155,10 +195,34 @@ export function sendLogMessage(fromNode, toNode, withAck) {
 					messageElement.classList.remove('log-message');
 					messageElement.classList.add('log-message-ack');
 				}
+				console.log('textElementId: ' + textElementId);
+				if (value && textElementId){
+					var addCSSClass = "";
+					var removeCSSClass = "";
+					if (commitValue) {
+						addCSSClass = "set-text-committed";
+						removeCSSClass = "set-text-uncommitted";
+					} else {
+						addCSSClass = "set-text-uncommitted";
+						removeCSSClass = "set-text-committed";
+					}
+					console.log('addCSSClass: ' + addCSSClass);
+
+					setSVGText({
+						targetId: textElementId,
+						text: value,
+						addCSSClass: addCSSClass,
+						removeCSSClass:removeCSSClass,
+						showElement: true,
+					});
+				}
+
 			},
 			onComplete: anim => {
 				if (withAck) {
 					messageElement.classList.remove('log-message-ack');
+					// we got the ack back so uncommited text should be shown as commited now
+					setSVGText({targetId: sourceNodeTextElementId, addCSSClass: "set-text-committed"});
 				}
 				messageElement.style.transform = 'none';
 			},
@@ -167,12 +231,12 @@ export function sendLogMessage(fromNode, toNode, withAck) {
 	return animation;
 }
 
-export function logMessageFromLeaderToFollowers(withAck) {
-	var nodeAAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_A, withAck);
+export function logMessageFromLeaderToFollowers(withAck, value, commitValue) {
+	var nodeAAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_A, withAck, value, commitValue);
 
 	// message to Node B
 	// var messageToB = document.getElementById('node-c-message-to-b');
-	var nodeBAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_B, withAck);
+	var nodeBAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_B, withAck, value, commitValue);
 
 	return [nodeAAnimation,nodeBAnimation];
 }

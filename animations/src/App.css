@@ -117,7 +117,7 @@
 }
 
 .node-partition {
-	r: 60;
+	/* r: 60; */
 	fill: transparent;
 	stroke-dasharray: 5;
 	stroke: black;
@@ -131,17 +131,8 @@
 }
 .stale-data-text {
 	fill: red;
-	animation: blink 1s linear infinite;
 }
 
-@keyframes blinker {
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes blink{
-0%{opacity: 0;}
-50%{opacity: 0;}
-100%{opacity: 1;}
+#node-c-partition-wrap text {
+	font-size: 14px;
 }

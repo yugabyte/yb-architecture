@@ -57,7 +57,14 @@ class MainDiagram extends Component {
 				{/* node C */}
 
 				{/* partition around C */}
-				<circle id="node-c-partition" className="node-partition visibility-hidden" cx={nodeCXPos+32} cy={nodeCYPos} />
+
+				<g id="node-c-partition-wrap" className="visibility-hidden">
+					<path d="M210,340a83.832377,83.832377,0,1,1,111,30" id="node-c-partition" className="node-partition"/>
+					<text fill="black">
+						<tspan x="240" y="240">Partitioned</tspan>
+						<tspan x="240" y="260">from A & B</tspan>
+					</text>
+				</g>
 
 				{/* main and outer circles */}
 				<g id="node-c-wrap">
@@ -71,7 +78,7 @@ class MainDiagram extends Component {
 				{/* text */}
 				<text x={nodeCXPos} y={nodeCYPos} fill="black">
 					<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Node C</tspan>
-					<tspan x={nodeCXPos + 6} y={nodeCYPos + 102}>Term: 0</tspan>
+					<tspan id="node-c-term-text" x={nodeCXPos + 6} y={nodeCYPos + 102}>Term: 0</tspan>
 					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCXPos + 6} y={nodeCYPos + 120}>Vote Count: 1</tspan>
 				</text>
 
@@ -89,7 +96,7 @@ class MainDiagram extends Component {
 				{/* text */}
 				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
 					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 84}>Node A</tspan>
-					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 102}>Term: 0</tspan>
+					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 102}>Term: 0</tspan>
 					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 120}>Voted For: C</tspan>
 
 				</text>
@@ -97,7 +104,7 @@ class MainDiagram extends Component {
 				{/* node B */}
 				<text x={nodeBXPos} y={nodeBYPos} fill="black">
 					<tspan x={nodeBXPos} y={nodeBYPos + 18}>Node B</tspan>
-					<tspan x={nodeBXPos} y={nodeBYPos + 36}>Term: 0</tspan>
+					<tspan id="node-b-term-text" x={nodeBXPos} y={nodeBYPos + 36}>Term: 0</tspan>
 					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBXPos} y={nodeBYPos + 54}>Voted For: C</tspan>
 				</text>
 
