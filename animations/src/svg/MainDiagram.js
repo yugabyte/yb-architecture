@@ -180,6 +180,7 @@ class MainDiagram extends Component {
 					<text id="node-b-main-text" x={nodeBXPos + 24} y={nodeBYPos + 108} className="node-text visibility-hidden">
 						<tspan>5</tspan>
 					</text>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_B)} x={nodeBXPos - 24} y={nodeBYPos + 50}/>
 				</g>
 
 				{/* client node */}

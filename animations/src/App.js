@@ -33,11 +33,6 @@ var AnimationState = {
 };
 
 
-// const NODE_A = "NODE_A";
-// const NODE_B = "NODE_B";
-
-// default delay between animations
-
 class App extends Component {
 	render() {
     return (

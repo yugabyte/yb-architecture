@@ -43,6 +43,14 @@ export class RaftReadOperationAnimation extends Component {
 				for (var i = 0; i < nodeOuterCircles.length; i++){
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
 				}
+
+				var clientMainText = document.getElementById('client-node-main-text');
+				HelperFunctions.hideElement(clientMainText);
+
+				HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE1, showElement: true });
+				HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE1, showElement: true });
+				HelperFunctions.setSVGText({targetId: 'node-c-main-text', text: SET_VALUE1, showElement: true });
+
 				//////////////////////////////////////////////////////
 				this.changeMainText('Read problem solution in Raft ...', () => {
 					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
@@ -72,6 +80,9 @@ export class RaftReadOperationAnimation extends Component {
 			case ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS: {
 				this.changeMainText('Once majority is obtained. The leader returns value back to the client', () => {
 					var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
+					animation.finished.then(() => {
+						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE1, showElement: true });
+					});
 				});
 				break;
 			}
