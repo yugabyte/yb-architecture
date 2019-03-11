@@ -65,7 +65,7 @@ export class LeaderLeaseAnimation extends Component {
 						translateX: -280,
 						translateY: 0,
 						easing: 'linear',
-						duration: 1000,
+						duration: 1500,
 						begin: () => {
 							HelperFunctions.showElement(leaseToA);
 						},
@@ -81,7 +81,7 @@ export class LeaderLeaseAnimation extends Component {
 						translateX: -150,
 						translateY: -210,
 						easing: 'linear',
-						duration: 1000,
+						duration: 1500,
 						begin: () => {
 							HelperFunctions.showElement(leaseToB);
 						},
@@ -90,7 +90,7 @@ export class LeaderLeaseAnimation extends Component {
 							leaseToB.style.transform = 'none';
 						},
 					});
-					Promise.all([nodeALeaseAnimation,nodeBLeaseAnimation]).then(() => {
+					Promise.all([nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished]).then(() => {
 						this.animationState = ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS;
 						HelperFunctions.delayedNext(this, 1000);
 					})
@@ -123,7 +123,7 @@ export class LeaderLeaseAnimation extends Component {
 							showElement: true});
 
 						// send confirmation of write to followers
-						var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true);
+						var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true,600);
 						finishedPromises = HelperFunctions.getFinishPromises(confWriteToFollowersAnimation);
 
 						// and notify client as well
@@ -160,7 +160,7 @@ export class LeaderLeaseAnimation extends Component {
 					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
 
 					this.animationState = ANIMATION_STATE_NEW_LEADER_ELECTED;
-					HelperFunctions.delayedNext(this, 1000);
+					HelperFunctions.delayedNext(this, 2000);
 				});
 				break;
 			}

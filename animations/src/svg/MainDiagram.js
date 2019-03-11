@@ -1,11 +1,19 @@
 import React, { Component } from 'react';
 
+import SmallClock from './SmallClock';
+import HorizontalTimer from './HorizontalTimer';
+import {Constants} from '../constants';
+
+var HelperFunctions = require('../HelperFunctions');
+
+
 // starting position of nodes
 const nodeABaseXPos = 42;
 const nodeABaseYPos = 324;
 
-const nodeCXPos = 276;
-const nodeCYPos = 324;
+const nodeCBaseXPos = 276;
+const nodeCBaseYPos = 324;
+
 const nodeBXPos = 168;
 const nodeBYPos = 18;
 const clientNodeXPos = 186;
@@ -34,18 +42,64 @@ export const nodeAPositions = {
 	messageToClient: {
 		x: nodeABaseXPos + 6,
 		y: nodeABaseYPos
+	},
+	leaseTimer: {
+		x: nodeABaseXPos - 48,
+		y: nodeABaseYPos + 42
 	}
 }
 
+export const nodeCPositions = {
+	base: {
+		x: nodeCBaseXPos,
+		y: nodeCBaseYPos
+	},
+	messageToB: {
+		x:nodeCBaseXPos+32 ,
+		y:nodeCBaseYPos
+	},
+	messageToA: {
+		x:nodeCBaseXPos+32 ,
+		y:nodeCBaseYPos
+	},
+	messageToClient: {
+		x:nodeCBaseXPos+32 ,
+		y:nodeCBaseYPos
+	},
+	partitionText1: {
+		x: nodeCBaseXPos - 50,
+		y: nodeCBaseYPos - 100
+	},
+	partitionText2: {
+		x: nodeCBaseXPos - 50,
+		y: nodeCBaseYPos - 85
+	}
+}
 class MainDiagram extends Component {
 
 	render() {
 		return (
 			<svg height="464" width="380">
+				{/* reusable analog clock */}
+				{/*
+				<defs>
+					<g id="analog-clock" transform="translate(10,10)">
+						<circle id="face" stroke="black" stroke-width="3px" cx="10" cy="20" r="10" fill="transparent"/>
+						<g id="hands">
+							<rect id="hour" x="9" y="12" width="2" height="10" rx="2.5" ry="2.55" stroke-width="1px" fill="#333" stroke="555" />
+							<rect id="min" x="9" y="20" width="9" height="2" rx="2.5" ry="2.55" stroke-width="1px" fill="#333" stroke="555" />
+						</g>
+					</g>
+				</defs>
+				*/}
+				<defs>
+					<SmallClock/>
+				</defs>
+
 				{/* smaller circles */}
-				<circle id="node-c-message-to-b" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-				<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCXPos+32} cy={nodeCYPos} />
-				<circle id="node-c-message-to-client" className="node-small-circle visibility-hidden" cx={nodeCXPos+32} cy={nodeCYPos} />
+				<circle id="node-c-message-to-b" className="node-small-circle" cx={nodeCPositions.messageToB.x} cy={nodeCPositions.messageToB.y} />
+				<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCPositions.messageToA.x} cy={nodeCPositions.messageToB.y} />
+				<circle id="node-c-message-to-client" className="node-small-circle visibility-hidden" cx={nodeCPositions.messageToClient.x} cy={nodeCPositions.messageToClient.y} />
 
 				<circle id="client-message" className="client-message visibility-hidden" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
 
@@ -54,32 +108,41 @@ class MainDiagram extends Component {
 				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
 				<circle id="node-a-message-to-client" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToClient.x} cy={nodeAPositions.messageToClient.y} />
 
+				{/* lease messages */}
+				<g id="node-c-lease-to-node-a" className="visibility-hidden">
+					<use href="#analog-clock" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y - 36}/>
+				</g>
+				<g id="node-c-lease-to-node-b" className="visibility-hidden">
+					<use href="#analog-clock" x={nodeCPositions.base.x + 24} y={nodeCPositions.base.y - 36}/>
+				</g>
+
 				{/* node C */}
 
 				{/* partition around C */}
 
 				<g id="node-c-partition-wrap" className="visibility-hidden">
-					<path d="M210,340a83.832377,83.832377,0,1,1,111,30" id="node-c-partition" className="node-partition"/>
+					<path d="M210,340a83.832377,83.832377,0,1,1,211,30" id="node-c-partition" className="node-partition"/>
 					<text fill="black">
-						<tspan x="240" y="240">Partitioned</tspan>
-						<tspan x="240" y="260">from A & B</tspan>
+						<tspan x={nodeCPositions.partitionText1.x} y={nodeCPositions.partitionText1.y}>Partitioned</tspan>
+						<tspan x={nodeCPositions.partitionText2.x} y={nodeCPositions.partitionText2.y}>from A & B</tspan>
 					</text>
 				</g>
 
 				{/* main and outer circles */}
 				<g id="node-c-wrap">
-					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-					<circle id="node-c-circle" cx={nodeCXPos+32} cy={nodeCYPos} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<text id="node-c-main-text" x={nodeCXPos + 30} y={nodeCYPos + 6} className="node-text visibility-hidden" fill="black">
+					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-c-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<text id="node-c-main-text" x={nodeCPositions.base.x + 30} y={nodeCPositions.base.y + 6} className="node-text visibility-hidden" fill="black">
 						<tspan>5</tspan>
 					</text>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_C)} x={nodeCPositions.base.x - 18} y={nodeCPositions.base.y + 42}/>
 				</g>
 
 				{/* text */}
-				<text x={nodeCXPos} y={nodeCYPos} fill="black">
-					<tspan x={nodeCXPos + 6} y={nodeCYPos + 84}>Node C</tspan>
-					<tspan id="node-c-term-text" x={nodeCXPos + 6} y={nodeCYPos + 102}>Term: 0</tspan>
-					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCXPos + 6} y={nodeCYPos + 120}>Vote Count: 1</tspan>
+				<text x={nodeCPositions.base.x} y={nodeCPositions.base.y} fill="black">
+					<tspan x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 84}>Node C</tspan>
+					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 102}>Term: 0</tspan>
+					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 120}>Vote Count: 1</tspan>
 				</text>
 
 				{/* node A */}
@@ -91,6 +154,7 @@ class MainDiagram extends Component {
 					<text id="node-a-main-text" x={nodeAPositions.base.x} y={nodeAPositions.base.y + 6} className="node-text visibility-hidden">
 						<tspan>5</tspan>
 					</text>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x} y={nodeAPositions.leaseTimer.y}/>
 				</g>
 
 				{/* text */}
@@ -125,7 +189,9 @@ class MainDiagram extends Component {
 						<tspan>5</tspan>
 					</text>
 				</g>
+
 			</svg>
+
 		);
 	}
 }

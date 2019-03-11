@@ -10,8 +10,11 @@ import {
 
 import {ReadOperationAnimation,ReadOperationType} from './ReadOperationAnimation';
 import RaftReadOperationAnimation from './RaftReadOperationAnimation';
+import LeaderLeasesAnimation from './LeaderLeasesAnimation';
 
 import {Constants} from './constants';
+import Test from './Test';
+
 var HelperFunctions = require('./HelperFunctions');
 
 const SET_VALUE1 = "5";
@@ -43,6 +46,8 @@ class App extends Component {
 					<Route exact path='/' component={LeaderElection}></Route>
           <Route exact path='/read-operation' render={(props) => <ReadOperationAnimation {...props} operationType={ReadOperationType.FAILURE}/> }></Route>
 					<Route exact path="/read-operation-in-raft" render={(props) => <RaftReadOperationAnimation {...props} /> }></Route>
+					<Route exact path="/read-operation-in-yuga-byte" component={LeaderLeasesAnimation}></Route>
+					<Route exact path='/test' component={Test}></Route>
 
 		    </div>
 			</Router>

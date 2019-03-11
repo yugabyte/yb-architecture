@@ -23,7 +23,7 @@ const ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C = "ANIMATION_ST
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
 function setValueText(value) {
-	return "SET " + value;
+	return HelperFunctions.getSetValueText(value);
 }
 
 export var ReadOperationType = {
@@ -70,13 +70,6 @@ export class ReadOperationAnimation extends Component {
 					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_C,false, setValueText(SET_VALUE1));
 
 					animation.finished.then(() => {
-						// show entry as uncommited on Node C
-						// HelperFunctions.setSVGText({
-						// 	targetId: 'node-c-extra-text',
-						// 	text: setValueText(SET_VALUE1),
-						// 	addCSSClass: "set-text-uncommitted",
-						// 	showElement: true,
-						// });
 
 						this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT;
 						HelperFunctions.delayedNext(this, 100);
@@ -104,7 +97,7 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS: {
 				// next leader notifies followers that it has commited the entry
-				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true);
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true, 600);
 				var finishPromises = HelperFunctions.getFinishPromises(animations);
 
 				// and notify client as well
@@ -124,8 +117,7 @@ export class ReadOperationAnimation extends Component {
 			case ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS: {
 				this.changeMainText('Now imagine the Leader C gets network partitioned from it followers A and B',() => {
 					// Partition Node C from followers
-					var nodeCPartition = document.getElementById('node-c-partition-wrap');
-					HelperFunctions.showElement(nodeCPartition);
+					HelperFunctions.partitionNodeC();
 
 					this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
 					HelperFunctions.delayedNext(this,100);
@@ -176,7 +168,7 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B: {
 				// send commit confirmation back to B
-				var animation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false);
+				var animation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, SET_VALUE2, false, 600);
 				animation.finished.then(() => {
 					// mark B's SET operation as commited
 					HelperFunctions.setSVGText({
