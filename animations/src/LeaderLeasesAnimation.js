@@ -17,11 +17,15 @@ const ANIMATION_STATE_NEW_LEADER_ELECTED = "ANIMATION_STATE_NEW_LEADER_ELECTED";
 const ANIMATION_STATE_TIMER_STARTED_ON_ORIGINAL_LEADER = "ANIMATION_STATE_TIMER_STARTED_ON_ORIGINAL_LEADER";
 const ANIMATION_STATE_TIMER_STARTED_ON_NEW_LEADER = "ANIMATION_STATE_TIMER_STARTED_ON_NEW_LEADER";
 const ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED = "ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED";
+const ANIMATION_STATE_POST_NEW_LEADER_CLIENT_SENT_VALUE2_TO_LEADER = "ANIMATION_STATE_POST_NEW_LEADER_CLIENT_SENT_VALUE2_TO_LEADER";
+const ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED = "ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED";
+const ANIMATION_STATE_POST_NEW_LEADER_LOG_ACK_RECEIVED_FROM_FOLLOWER = "ANIMATION_STATE_POST_NEW_LEADER_LOG_ACK_RECEIVED_FROM_FOLLOWER";
 
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
 const ORIGINAL_LEADER_TIMER_DURATION = 10000;
-const NEW_LEADER_TIMER_DURATION = 20000;
+const NODE_A_TIMER_DURATION = 22000;
+const NODE_B_TIMER_DURATION = 30000;
 
 export class LeaderLeaseAnimation extends Component {
 	constructor(props) {
@@ -65,7 +69,7 @@ export class LeaderLeaseAnimation extends Component {
 						translateX: -280,
 						translateY: 0,
 						easing: 'linear',
-						duration: 1000,
+						duration: 1500,
 						begin: () => {
 							HelperFunctions.showElement(leaseToA);
 						},
@@ -81,7 +85,7 @@ export class LeaderLeaseAnimation extends Component {
 						translateX: -150,
 						translateY: -210,
 						easing: 'linear',
-						duration: 1000,
+						duration: 1500,
 						begin: () => {
 							HelperFunctions.showElement(leaseToB);
 						},
@@ -90,10 +94,15 @@ export class LeaderLeaseAnimation extends Component {
 							leaseToB.style.transform = 'none';
 						},
 					});
-					Promise.all([nodeALeaseAnimation,nodeBLeaseAnimation]).then(() => {
+					Promise.all([nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished]).then(() => {
+						// start lease timers on all nodes
+						this.nodeCTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_TIMER_DURATION);
+						this.nodeATimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_A, NODE_A_TIMER_DURATION);
+						this.nodeBTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_B, NODE_B_TIMER_DURATION);
+
 						this.animationState = ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS;
-						HelperFunctions.delayedNext(this, 1000);
-					})
+						HelperFunctions.delayedNext(this, 500);
+					});
 
 				});
 				break;
@@ -102,7 +111,7 @@ export class LeaderLeaseAnimation extends Component {
 				this.changeMainText('Client arrives and performs a write', () => {
 					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
 					introduceClientAnimation.finished.then(() => {
-						var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1));
+						var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1), false, 0, this.nodeCTimerAnimation);
 						writeAnimation.finished.then(() => {
 							this.animationState = ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER;
 							HelperFunctions.delayedNext(this, 1000);
@@ -113,7 +122,7 @@ export class LeaderLeaseAnimation extends Component {
 			}
 			case ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER: {
 				this.changeMainText('This starts a raft round to commit value to all nodes', () => {
-					var messageToFollowerAnimations = HelperFunctions.logMessageFromLeaderToFollowers(true,"SET " + SET_VALUE1, false);
+					var messageToFollowerAnimations = HelperFunctions.logMessageFromLeaderToFollowers(true,"SET " + SET_VALUE1, false, 0, this.nodeATimerAnimation, this.nodeBTimerAnimation, this.nodeCTimerAnimation);
 					var finishedPromises = HelperFunctions.getFinishPromises(messageToFollowerAnimations);
 
 					Promise.all(finishedPromises).then(() => {
@@ -123,7 +132,7 @@ export class LeaderLeaseAnimation extends Component {
 							showElement: true});
 
 						// send confirmation of write to followers
-						var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true);
+						var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true,600, this.nodeATimerAnimation, this.nodeBTimerAnimation);
 						finishedPromises = HelperFunctions.getFinishPromises(confWriteToFollowersAnimation);
 
 						// and notify client as well
@@ -153,41 +162,26 @@ export class LeaderLeaseAnimation extends Component {
 					// partition original leader
 					HelperFunctions.partitionNodeC();
 
-					// elect Node A as new leader
+					// elect Node A as new leader candidate
 					var nodeA = document.getElementById('node-a-circle');
-					nodeA.classList.add('leader-node');
+					nodeA.classList.add('leader-candidate-node');
 					HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 1"});
 					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
 
+					this.pauseTimers();
 					this.animationState = ANIMATION_STATE_NEW_LEADER_ELECTED;
-					HelperFunctions.delayedNext(this, 1000);
+					HelperFunctions.delayedNext(this, 2000);
 				});
 				break;
 			}
 			case ANIMATION_STATE_NEW_LEADER_ELECTED: {
-				this.changeMainText('Leader lease timer kicks off on original leader', () => {
-					this.originalLeaderTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_TIMER_DURATION);
-
-					this.animationState = ANIMATION_STATE_TIMER_STARTED_ON_ORIGINAL_LEADER;
-					HelperFunctions.delayedNext(this, 1000);
-				});
-				break;
-			}
-			case ANIMATION_STATE_TIMER_STARTED_ON_ORIGINAL_LEADER: {
-				this.changeMainText('Lease timer starts on new leader as well', () => {
-						this.newLeaderTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_A, NEW_LEADER_TIMER_DURATION);
-
-						this.animationState = ANIMATION_STATE_TIMER_STARTED_ON_NEW_LEADER;
-						HelperFunctions.delayedNext(this, 1000);
-				});
-				break;
-			}
-			case ANIMATION_STATE_TIMER_STARTED_ON_NEW_LEADER: {
+				this.playTimers();
 				this.changeMainText('Client tries to write to new leader but update fails, as old leader can still serve reads', () => {
 						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE2 });
 
 						var messageElement = document.getElementById('client-message');
-						HelperFunctions.messageFromClient(Constants.NODE_A,{
+						HelperFunctions.messageFromClient(Constants.NODE_A,	{
+							destinationTimerAnimation: this.nodeATimerAnimation,
 							onBegin: () => {
 								HelperFunctions.showElement(messageElement);
 								messageElement.classList.add('log-message');
@@ -195,6 +189,9 @@ export class LeaderLeaseAnimation extends Component {
 							onChangeComplete: () => {
 								messageElement.classList.remove('log-message');
 								messageElement.classList.add('error-message');
+								if (this.nodeATimerAnimation) {
+									this.nodeATimerAnimation.restart();
+								}
 							},
 							onComplete: () => {
 								messageElement.classList.remove('error-message');
@@ -203,38 +200,112 @@ export class LeaderLeaseAnimation extends Component {
 							alternate: true,
 						});
 
-						this.originalLeaderTimerAnimation.finished.then(() => {
+						this.nodeCTimerAnimation.finished.then(() => {
 							var nodeC = document.getElementById('node-c-circle');
 							nodeC.classList.remove('leader-node');
 
-							this.animationState = ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED;
+							var nodeA = document.getElementById('node-a-circle');
+							nodeA.classList.remove('leader-candidate-node');
+							nodeA.classList.add('leader-node');
 
-							// 0 is intentional below, we want perform the next step ASAP as we don't want
-							// the new leader's timer to expire as well
-							HelperFunctions.delayedNext(this, 0);
+							this.changeMainText("Original leader lease time has expired. It has stepped downed and Node A has become the leader now", () => {
+								this.animationState = ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED;
+
+								// Make sure we perform next before the new leader's timer expires
+								HelperFunctions.delayedNext(this, 1000);
+							}, 0);
 						});
 				});
 				break;
 			}
 			case ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED: {
-				this.changeMainText("Once the original leader's lease timer expires and it has stepped downed, client can write messages to the new leader", () => {
-					this.newLeaderTimerAnimation.pause();
+				this.changeMainText("From here on, client can write messages to the new leader", () => {
+					this.nodeATimerAnimation.pause();
 
-					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, true);
+					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, HelperFunctions.getSetValueText(SET_VALUE2), false, 0, this.nodeATimerAnimation);
 					animation.finished.then(() => {
-						// simply set VALUE2 to on all nodes
-						HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE2 });
-						HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE2 });
+						this.animationState = ANIMATION_STATE_POST_NEW_LEADER_CLIENT_SENT_VALUE2_TO_LEADER;
+						HelperFunctions.delayedNext(this, 1000);
 					});
 				});
+				break;
+			}
+			case ANIMATION_STATE_POST_NEW_LEADER_CLIENT_SENT_VALUE2_TO_LEADER: {
+				var messageToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, HelperFunctions.getSetValueText(SET_VALUE2), false, 0, this.nodeBTimerAnimation);
+
+				messageToBAnimation.finished.then(() => {
+					HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE2 });
+					this.animationState = ANIMATION_STATE_POST_NEW_LEADER_LOG_ACK_RECEIVED_FROM_FOLLOWER;
+					HelperFunctions.delayedNext(this, 100);
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_NEW_LEADER_LOG_ACK_RECEIVED_FROM_FOLLOWER: {
+				var confirmToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE, false, HelperFunctions.getSetValueText(SET_VALUE2), 0);
+				var confirmToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, HelperFunctions.getSetValueText(SET_VALUE2), true, 300, this.nodeBTimerAnimation);
+
+				Promise.all([confirmToClientAnimation.finished, confirmToBAnimation.finished]).then(() => {
+					HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE2 });
+
+					this.animationState = ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED;
+					HelperFunctions.delayedNext(this, 100);
+				});
+				break;
+			}
+			case ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED: {
+				this.pauseTimers();
 				break;
 			}
 			default:
 				console.error('Unrecognized state: ' + this.animationState);
 		}
 	}
-	changeMainText(text, onComplete) {
-		HelperFunctions.setTextWithAnimation(this.mainTextSect, text, onComplete);
+	changeMainText(text, onComplete, delay) {
+		HelperFunctions.setTextWithAnimation(this.mainTextSect, text, onComplete, delay);
+	}
+	restartTimers() {
+		if (this.nodeATimerAnimation) {
+			this.nodeATimerAnimation.restart();
+		}
+		if (this.nodeBTimerAnimation) {
+			this.nodeBTimerAnimation.restart();
+		}
+		if (this.nodeCTimerAnimation) {
+			this.nodeCTimerAnimation.restart();
+		}
+	}
+	stopTimers() {
+		if (this.nodeATimerAnimation) {
+			this.nodeATimerAnimation.stop();
+		}
+		if (this.nodeBTimerAnimation) {
+			this.nodeBTimerAnimation.stop();
+		}
+		if (this.nodeCTimerAnimation) {
+			this.nodeCTimerAnimation.stop();
+		}
+	}
+	pauseTimers() {
+		if (this.nodeATimerAnimation) {
+			this.nodeATimerAnimation.pause();
+		}
+		if (this.nodeBTimerAnimation) {
+			this.nodeBTimerAnimation.pause();
+		}
+		if (this.nodeCTimerAnimation) {
+			this.nodeCTimerAnimation.pause();
+		}
+	}
+	playTimers() {
+		if (this.nodeATimerAnimation) {
+			this.nodeATimerAnimation.play();
+		}
+		if (this.nodeBTimerAnimation) {
+			this.nodeBTimerAnimation.play();
+		}
+		if (this.nodeCTimerAnimation) {
+			this.nodeCTimerAnimation.play();
+		}
 	}
 
 	render() {

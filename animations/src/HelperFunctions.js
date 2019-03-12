@@ -44,7 +44,7 @@ export function delayedNext(animation, delay) {
 	setTimeout(() => animation.next(), delay);
 }
 
-export function setTextWithAnimation(textSect, text, onComplete) {
+export function setTextWithAnimation(textSect, text, onComplete, delay) {
 	textSect.innerHTML=text;
 
 	var ml4 = {};
@@ -53,7 +53,7 @@ export function setTextWithAnimation(textSect, text, onComplete) {
 	ml4.scaleOut = 3;
 	ml4.durationIn = 2000;
 	ml4.durationOut = 2000;
-	ml4.delay = 500;
+	ml4.delay = (delay?delay:500);
 
 	anime({
 		targets: textSect,
@@ -61,6 +61,7 @@ export function setTextWithAnimation(textSect, text, onComplete) {
 		scale: ml4.scaleIn,
 		duration: ml4.durationIn,
 		complete: onComplete,
+		delay: ml4.delay,
 	});
 }
 ///////////////////////////////////////////////////////////////
@@ -80,19 +81,6 @@ export function introduceClient(clientTextValue) {
 }
 
 
-// export function clientMessageToNodeC(params) {
-// 	var clientMessage = document.getElementById('client-message');
-// 	var animation = anime({
-// 		targets: clientMessage,
-// 		translateX: 100,
-// 		translateY: -100,
-// 		easing: 'linear',
-// 		duration: 800,
-// 		begin: params.onBegin,
-// 		complete: params.onComplete
-// 	});
-// 	return animation
-// }
 export function messageFromClient(destination, params) {
 	var messageElement = document.getElementById('client-message');
 	var translateX = 0;
@@ -105,8 +93,8 @@ export function messageFromClient(destination, params) {
 			break;
 		}
 		case Constants.NODE_A: {
-			translateX = -100;
-			translateY = -100;
+			translateX = -160;
+			translateY = -120;
 			break;
 		}
 		default: {
@@ -124,6 +112,7 @@ export function messageFromClient(destination, params) {
 		begin: params.onBegin,
 		complete: params.onComplete,
 		changeComplete: params.onChangeComplete,
+		direction: params.alternate?'alternate':'normal',
 	});
 	return animation;
 }
@@ -132,7 +121,7 @@ export function logMessageFromAToB(withAck) {
 	return sendLogMessage(Constants.NODE_A, Constants.NODE_B, withAck);
 }
 
-export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
+export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, delay, destinationTimerAnimation, srcTimerAnimation) {
 	console.log('FromNode: ' + fromNode + " toNode: " + toNode + " withAck: " + withAck + " value: " + value + " commitValue: " + commitValue);
 	var method = null;
 	var messageElement = null;
@@ -186,16 +175,24 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
 	}
 
 	var animation = method(toNode,{
+			delay: delay,
+			destinationTimerAnimation: destinationTimerAnimation,
 			onBegin: anim => {
 				showElement(messageElement);
 				messageElement.classList.add('log-message')
 			},
 			onChangeComplete: anim => {
+				console.log('In onChangeComplete. messageElement: ' + messageElement);
+				if (destinationTimerAnimation) {
+					console.log('Will restart timer animation');
+					destinationTimerAnimation.restart();
+				}
+
 				if (withAck) {
 					messageElement.classList.remove('log-message');
 					messageElement.classList.add('log-message-ack');
 				}
-				console.log('textElementId: ' + textElementId);
+
 				if (value && textElementId){
 					var addCSSClass = "";
 					var removeCSSClass = "";
@@ -206,7 +203,6 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
 						addCSSClass = "set-text-uncommitted";
 						removeCSSClass = "set-text-committed";
 					}
-					console.log('addCSSClass: ' + addCSSClass);
 
 					setSVGText({
 						targetId: textElementId,
@@ -216,13 +212,17 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
 						showElement: true,
 					});
 				}
-
 			},
 			onComplete: anim => {
 				if (withAck) {
 					messageElement.classList.remove('log-message-ack');
 					// we got the ack back so uncommited text should be shown as commited now
-					setSVGText({targetId: sourceNodeTextElementId, addCSSClass: "set-text-committed"});
+					if (sourceNodeTextElementId) {
+						setSVGText({targetId: sourceNodeTextElementId, addCSSClass: "set-text-committed"});
+					}
+				}
+				if (srcTimerAnimation) {
+					srcTimerAnimation.restart();
 				}
 				messageElement.style.transform = 'none';
 			},
@@ -231,12 +231,12 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue) {
 	return animation;
 }
 
-export function logMessageFromLeaderToFollowers(withAck, value, commitValue) {
-	var nodeAAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_A, withAck, value, commitValue);
+export function logMessageFromLeaderToFollowers(withAck, value, commitValue, delay, nodeATimerAnimation, nodeBTimerAnimation, nodeCTimerAnimation) {
+	var nodeAAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_A, withAck, value, commitValue, delay,nodeATimerAnimation, nodeCTimerAnimation);
 
 	// message to Node B
 	// var messageToB = document.getElementById('node-c-message-to-b');
-	var nodeBAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_B, withAck, value, commitValue);
+	var nodeBAnimation = sendLogMessage(Constants.NODE_C,Constants.NODE_B, withAck, value, commitValue, delay, nodeBTimerAnimation, nodeCTimerAnimation);
 
 	return [nodeAAnimation,nodeBAnimation];
 }
@@ -275,6 +275,7 @@ export function messageFromC(destination, params) {
 		begin: params.onBegin,
 		changeComplete: params.onChangeComplete,
 		complete: params.onComplete,
+		delay: params.delay?params.delay:0
 	});
 	return animation;
 }
@@ -309,6 +310,51 @@ export function messageFromA(destination, params) {
 		begin: params.onBegin,
 		changeComplete: params.onChangeComplete,
 		complete: params.onComplete,
+		delay: params.delay?params.delay:0
 	});
 	return animation;
+}
+
+export function getSetValueText(value) {
+	return "SET " + value;
+}
+
+export function partitionNodeC() {
+	var nodeCPartition = document.getElementById('node-c-partition-wrap');
+	showElement(nodeCPartition);
+}
+
+export function startLeaseTimer(forNode, duration){
+	var targetId = constructTimerElementId(forNode);
+	var timer = document.getElementById(targetId);
+	showElement(timer)
+	var animation = anime({
+		targets: timer,
+		width: '0',
+		easing: 'easeInOutQuad',
+		duration: duration,
+	});
+	return animation;
+}
+
+export function constructTimerElementId(forNode) {
+	var id = "htimer-rect-";
+	switch(forNode) {
+		case Constants.NODE_C: {
+			id += "node-c";
+			break;
+		}
+		case Constants.NODE_B: {
+			id += "node-b";
+			break;
+		}
+		case Constants.NODE_A: {
+			id += "node-a";
+			break;
+		}
+		default: {
+			console.error("Unrecognized Node: " + forNode);
+		}
+	}
+	return id;
 }

@@ -109,6 +109,12 @@
 	stroke-width: 3;
 }
 
+.error-message {
+	fill: black;
+	content: 'X';
+	color: red;
+}
+
 .set-text-uncommitted {
 	fill: red;
 }
@@ -135,4 +141,25 @@
 
 #node-c-partition-wrap text {
 	font-size: 14px;
+}
+
+
+.timer-face {
+	stroke-dasharray: 189px;
+	stroke-dashoffset: 0px;
+	stroke: black;
+}
+
+.timer-countdown-animation {
+	animation: countdown 3s linear;
+}
+
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0px;
+  }
+  to {
+    stroke-dashoffset: 189px;
+
+  }
 }
