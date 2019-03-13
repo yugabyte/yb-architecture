@@ -163,3 +163,25 @@
 
   }
 }
+
+.control-btns {
+	display: inline-block;
+	padding-top: 10px;
+}
+.yb-btn {
+	width: 120px;
+	height: 30px;
+	border-radius: 4px;
+	background: #202951;
+	color: white;
+	font-weight: bold;
+	font-size: 16px;
+	margin: 0 10px;
+}
+.yb-btn:hover{
+	background: #161C38;
+	transform: scale(1.1);
+}
+.yb-btn:disabled {
+	background: grey;
+}
