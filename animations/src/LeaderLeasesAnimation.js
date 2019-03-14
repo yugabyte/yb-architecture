@@ -30,15 +30,39 @@ const NODE_B_TIMER_DURATION = 30000;
 export class LeaderLeaseAnimation extends Component {
 	constructor(props) {
 		super(props);
-		this.animationState = ANIMATION_STATE_INITIAL;
+		this.state = {
+		}
+		this.init();
 	}
+	init() {
+		this.animationState = ANIMATION_STATE_INITIAL;
+		this.nodeATimerAnimation = null;
+		this.nodeBTimerAnimation = null;
+		this.nodeCTimerAnimation = null;
 
+	}
 	componentDidMount() {
 		this.mainTextSect = document.getElementById('main-text-sect');
-		HelperFunctions.delayedNext(this,100);
+		this.timersAreActive = false;
 	}
 
-	next() {
+	pause() {
+		if (this.timersAreActive) {
+			this.pauseTimers();
+		}
+	}
+	resume() {
+		if (this.timersAreActive) {
+			this.resumeTimers();
+		}
+	}
+	onNext() {
+		return new Promise((resolve,reject) => {
+			this.onNextInternal(resolve,reject);
+		});
+	}
+
+	onNextInternal(resolve,reject) {
 		switch(this.animationState) {
 			case ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -56,7 +80,10 @@ export class LeaderLeaseAnimation extends Component {
 						nodeC.classList.add('leader-node');
 
 						this.animationState = ANIMATION_STATE_INTRODUCTION_MADE;
-						HelperFunctions.delayedNext(this, 1000);
+						resolve({
+							animationState: this.animationState,
+							delay: 1000,
+						});
 					});
 				});
 				break;
@@ -96,12 +123,16 @@ export class LeaderLeaseAnimation extends Component {
 					});
 					Promise.all([nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished]).then(() => {
 						// start lease timers on all nodes
-						this.nodeCTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_TIMER_DURATION);
-						this.nodeATimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_A, NODE_A_TIMER_DURATION);
-						this.nodeBTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_B, NODE_B_TIMER_DURATION);
+						// this.nodeCTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_TIMER_DURATION);
+						// this.nodeATimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_A, NODE_A_TIMER_DURATION);
+						// this.nodeBTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_B, NODE_B_TIMER_DURATION);
+						this.startTimers();
 
 						this.animationState = ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS;
-						HelperFunctions.delayedNext(this, 500);
+						resolve({
+							animationState: this.animationState,
+							delay: 500,
+						});
 					});
 
 				});
@@ -114,7 +145,10 @@ export class LeaderLeaseAnimation extends Component {
 						var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1), false, 0, this.nodeCTimerAnimation);
 						writeAnimation.finished.then(() => {
 							this.animationState = ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER;
-							HelperFunctions.delayedNext(this, 1000);
+							resolve({
+								animationState: this.animationState,
+								delay: 1000,
+							});
 						})
 					});
 				});
@@ -151,7 +185,10 @@ export class LeaderLeaseAnimation extends Component {
 									showElement: true});
 
 							this.animationState = ANIMATION_STATE_VALUE1_COMMITED;
-							HelperFunctions.delayedNext(this, 1000);
+							resolve({
+								animationState: this.animationState,
+								delay: 1000,
+							});
 						});
 					});
 				});
@@ -170,12 +207,15 @@ export class LeaderLeaseAnimation extends Component {
 
 					this.pauseTimers();
 					this.animationState = ANIMATION_STATE_NEW_LEADER_ELECTED;
-					HelperFunctions.delayedNext(this, 2000);
+					resolve({
+						animationState: this.animationState,
+						delay: 2000,
+					});
 				});
 				break;
 			}
 			case ANIMATION_STATE_NEW_LEADER_ELECTED: {
-				this.playTimers();
+				this.resumeTimers();
 				this.changeMainText('Client tries to write to new leader but update fails, as old leader can still serve reads', () => {
 						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE2 });
 
@@ -212,7 +252,10 @@ export class LeaderLeaseAnimation extends Component {
 								this.animationState = ANIMATION_STATE_ORIGINAL_LEADER_TIMER_EXPIRED;
 
 								// Make sure we perform next before the new leader's timer expires
-								HelperFunctions.delayedNext(this, 1000);
+								resolve({
+									animationState: this.animationState,
+									delay: 1000,
+								});
 							}, 0);
 						});
 				});
@@ -225,7 +268,10 @@ export class LeaderLeaseAnimation extends Component {
 					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, HelperFunctions.getSetValueText(SET_VALUE2), false, 0, this.nodeATimerAnimation);
 					animation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_POST_NEW_LEADER_CLIENT_SENT_VALUE2_TO_LEADER;
-						HelperFunctions.delayedNext(this, 1000);
+						resolve({
+							animationState: this.animationState,
+							delay: 1000,
+						});
 					});
 				});
 				break;
@@ -235,8 +281,12 @@ export class LeaderLeaseAnimation extends Component {
 
 				messageToBAnimation.finished.then(() => {
 					HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE2 });
+
 					this.animationState = ANIMATION_STATE_POST_NEW_LEADER_LOG_ACK_RECEIVED_FROM_FOLLOWER;
-					HelperFunctions.delayedNext(this, 100);
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
 				});
 				break;
 			}
@@ -248,12 +298,28 @@ export class LeaderLeaseAnimation extends Component {
 					HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE2 });
 
 					this.animationState = ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED;
-					HelperFunctions.delayedNext(this, 100);
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
 				});
 				break;
 			}
 			case ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED: {
-				this.pauseTimers();
+				this.stopTimers();
+				this.animationState = Constants.ANIMATION_STATE_FINISHED;
+				resolve({
+					animationState: this.animationState,
+					delay: 100,
+				});
+				break;
+			}
+			case Constants.ANIMATION_STATE_FINISHED: {
+				console.log('Animation finished. Nothing to do');
+				resolve({
+					animationState: this.animationState,
+					delay: 100,
+				});
 				break;
 			}
 			default:
@@ -275,15 +341,8 @@ export class LeaderLeaseAnimation extends Component {
 		}
 	}
 	stopTimers() {
-		if (this.nodeATimerAnimation) {
-			this.nodeATimerAnimation.stop();
-		}
-		if (this.nodeBTimerAnimation) {
-			this.nodeBTimerAnimation.stop();
-		}
-		if (this.nodeCTimerAnimation) {
-			this.nodeCTimerAnimation.stop();
-		}
+		this.timersAreActive = false;
+		this.pauseTimers();
 	}
 	pauseTimers() {
 		if (this.nodeATimerAnimation) {
@@ -296,7 +355,7 @@ export class LeaderLeaseAnimation extends Component {
 			this.nodeCTimerAnimation.pause();
 		}
 	}
-	playTimers() {
+	resumeTimers() {
 		if (this.nodeATimerAnimation) {
 			this.nodeATimerAnimation.play();
 		}
@@ -307,11 +366,17 @@ export class LeaderLeaseAnimation extends Component {
 			this.nodeCTimerAnimation.play();
 		}
 	}
+	startTimers() {
+		this.timersAreActive = true;
+		this.nodeCTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_TIMER_DURATION);
+		this.nodeATimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_A, NODE_A_TIMER_DURATION);
+		this.nodeBTimerAnimation = HelperFunctions.startLeaseTimer(Constants.NODE_B, NODE_B_TIMER_DURATION);
+	}
 
 	render() {
 		return(
 			<div>
-				<div id="main-diagram">
+				<div id="main-diagram" >
 					<MainDiagram/>
 				</div>
 				<div id="main-text-sect">

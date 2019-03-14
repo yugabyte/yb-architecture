@@ -27,10 +27,22 @@ export class RaftReadOperationAnimation extends Component {
 
 	componentDidMount() {
 		this.mainTextSect = document.getElementById('main-text-sect');
-		HelperFunctions.delayedNext(this,100);
 	}
 
-	next() {
+	pause(){
+
+	}
+	resume() {
+
+	}
+
+	onNext() {
+		return new Promise((resolve,reject) => {
+			this.onNextInternal(resolve,reject);
+		});
+	}
+
+	onNextInternal(resolve,reject) {
 		switch(this.animationState) {
 			case ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -56,7 +68,10 @@ export class RaftReadOperationAnimation extends Component {
 					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
 					introduceClientAnimation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_CLIENT_INTRODUCED;
-						HelperFunctions.delayedNext(this, 100);
+						resolve({
+							animationState: ANIMATION_STATE_CLIENT_INTRODUCED,
+							delay: 100,
+						});
 					})
 				});
 				break;
@@ -65,7 +80,10 @@ export class RaftReadOperationAnimation extends Component {
 				this.changeMainText('Client performs a read operation', () => {
 					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
 					this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
-					HelperFunctions.delayedNext(this, 1000);
+					resolve({
+						animationState: this.animationState,
+						delay: 1000
+					});
 				});
 				break;
 			}
@@ -73,7 +91,10 @@ export class RaftReadOperationAnimation extends Component {
 				this.changeMainText('Leader contacts followers to obtain a consensus on current value', () => {
 					var animation = HelperFunctions.logMessageFromLeaderToFollowers(true);
 					this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS;
-					HelperFunctions.delayedNext(this, 1000);
+					resolve({
+						animationState: this.animationState,
+						delay: 1000
+					});
 				});
 				break;
 			}
@@ -82,18 +103,30 @@ export class RaftReadOperationAnimation extends Component {
 					var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
 					animation.finished.then(() => {
 						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE1, showElement: true });
+
+						this.animationState = Constants.ANIMATION_STATE_FINISHED;
+						resolve({
+							animationState: this.animationState,
+							delay: 100
+						});
 					});
 				});
 				break;
 			}
-			default:
+			case Constants.ANIMATION_STATE_FINISHED: {
+				console.log('Animation finished. Nothing to do');
+				resolve({
+					animationState: this.animationState,
+					delay: 100,
+				});
+				break;
+			}
+			default: {
 				console.error('Unrecognized state: ' + this.animationState);
+				reject('Unrecognized state: ' + this.animationState);
+			}
 		}
 	}
-	changeMainText(text, onComplete) {
-		HelperFunctions.setTextWithAnimation(this.mainTextSect, text, onComplete);
-	}
-
 	changeMainText(text, onComplete) {
 		HelperFunctions.setTextWithAnimation(this.mainTextSect, text, onComplete);
 	}
@@ -103,8 +136,6 @@ export class RaftReadOperationAnimation extends Component {
 			<div>
 				<div id="main-diagram">
 					<MainDiagram/>
-				</div>
-				<div id="main-text-sect">
 				</div>
 			</div>
 		)

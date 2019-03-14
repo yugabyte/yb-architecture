@@ -26,10 +26,6 @@ function setValueText(value) {
 	return HelperFunctions.getSetValueText(value);
 }
 
-export var ReadOperationType = {
-	FAILURE: "failure_operation",
-};
-
 export class ReadOperationAnimation extends Component {
 	constructor(props) {
 		super(props);
@@ -38,10 +34,19 @@ export class ReadOperationAnimation extends Component {
 
 	componentDidMount() {
 		this.mainTextSect = document.getElementById('main-text-sect');
-		HelperFunctions.delayedNext(this,100);
 	}
 
-	next() {
+	pause() {
+	}
+	resume() {
+	}
+
+	onNext() {
+		return new Promise((resolve,reject) => {
+			this.onNextInternal(resolve,reject);
+		});
+	}
+	onNextInternal(resolve,reject) {
 		switch(this.animationState) {
 			case ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -59,7 +64,10 @@ export class ReadOperationAnimation extends Component {
 					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
 					introduceClientAnimation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_CLIENT_INTRODUCED;
-						HelperFunctions.delayedNext(this, 100);
+						resolve({
+							animationState: this.animationState,
+							delay: 100,
+						});
 					})
 				});
 				break;
@@ -72,7 +80,10 @@ export class ReadOperationAnimation extends Component {
 					animation.finished.then(() => {
 
 						this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT;
-						HelperFunctions.delayedNext(this, 100);
+						resolve({
+							animationState: this.animationState,
+							delay: 100,
+						});
 					});
 				});
 				break;
@@ -91,7 +102,10 @@ export class ReadOperationAnimation extends Component {
 							showElement: true});
 
 					this.animationState = ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS;
-					HelperFunctions.delayedNext(this, 100);
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
 				});
 				break;
 			}
@@ -109,18 +123,24 @@ export class ReadOperationAnimation extends Component {
 					HelperFunctions.setSVGText({targetId: "node-b-main-text",text:SET_VALUE1,showElement: true});
 
 					this.animationState = ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS;
-					HelperFunctions.delayedNext(this, 100);
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
 				});
 
 				break;
 			}
 			case ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS: {
-				this.changeMainText('Now imagine the Leader C gets network partitioned from it followers A and B',() => {
+				this.changeMainText('Now imagine the Leader C gets network partitioned from its followers A and B',() => {
 					// Partition Node C from followers
 					HelperFunctions.partitionNodeC();
 
 					this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
-					HelperFunctions.delayedNext(this,100);
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
 				});
 				break;
 			}
@@ -132,7 +152,10 @@ export class ReadOperationAnimation extends Component {
 					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
 
 					this.animationState = ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER;
-					HelperFunctions.delayedNext(this,1000);
+					resolve({
+						animationState: this.animationState,
+						delay: 1000,
+					});
 				});
 				break;
 			}
@@ -145,7 +168,10 @@ export class ReadOperationAnimation extends Component {
 
 					animation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_MESSAGE_FROM_CLIENT;
-						HelperFunctions.delayedNext(this, 100);
+						resolve({
+							animationState: this.animationState,
+							delay: 100,
+						});
 					})
 				});
 				break;
@@ -161,7 +187,10 @@ export class ReadOperationAnimation extends Component {
 						});
 
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B;
-						HelperFunctions.delayedNext(this, 100);
+						resolve({
+							animationState: this.animationState,
+							delay: 100,
+						});
 					});
 				});
 				break;
@@ -187,7 +216,10 @@ export class ReadOperationAnimation extends Component {
 				messageToClientAnimation.finished.then(() => {
 					this.changeMainText('Since A has applied the change, it responds to client with success', () => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_NODE_A_HAS_SENT_ACK_TO_CLIENT;
-						HelperFunctions.delayedNext(this, 1000);
+						resolve({
+							animationState: this.animationState,
+							delay: 1000,
+						});
 
 					});
 				});
@@ -199,7 +231,10 @@ export class ReadOperationAnimation extends Component {
 
 					animation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_POST_PARTITION_CLIENT_HAS_READ_FROM_NODE_C;
-						HelperFunctions.delayedNext(this, 1000);
+						resolve({
+							animationState: this.animationState,
+							delay: 1000,
+						});
 					});
 				});
 				break;
@@ -215,6 +250,19 @@ export class ReadOperationAnimation extends Component {
 							addCSSClass: 'stale-data-text',
 						});
 					})
+					this.animationState = Constants.ANIMATION_STATE_FINISHED;
+					resolve({
+						animationState: this.animationState,
+						delay: 100,
+					});
+				});
+				break;
+			}
+			case Constants.ANIMATION_STATE_FINISHED: {
+				console.log('Animation finished. Nothing to do');
+				resolve({
+					animationState: this.animationState,
+					delay: 100,
 				});
 				break;
 			}
