@@ -178,7 +178,7 @@
 	font-size: 16px;
 	margin: 0 10px;
 }
-.yb-btn:hover{
+.yb-btn:not([disabled]):hover {
 	background: #161C38;
 	transform: scale(1.1);
 }
