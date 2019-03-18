@@ -111,7 +111,7 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS: {
 				// next leader notifies followers that it has commited the entry
-				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true, 600);
+				var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,setValueText(SET_VALUE1), true, 600);
 				var finishPromises = HelperFunctions.getFinishPromises(animations);
 
 				// and notify client as well
@@ -197,18 +197,7 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_POST_PARTITION_NODE_A_RECEIVED_ACK_FROM_NODE_B: {
 				// send commit confirmation back to B
-				var animation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, SET_VALUE2, false, 600);
-				animation.finished.then(() => {
-					// mark B's SET operation as commited
-					HelperFunctions.setSVGText({
-							targetId: 'node-b-extra-text',
-							addCSSClass: "set-text-committed",
-					});
-					HelperFunctions.setSVGText({
-							targetId: 'node-b-main-text',
-							text: SET_VALUE2
-					});
-				});
+				HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, setValueText(SET_VALUE2), true, 600);
 
 				// notify client as well
 				var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);

@@ -14,10 +14,11 @@ const nodeABaseYPos = 324;
 const nodeCBaseXPos = 276;
 const nodeCBaseYPos = 324;
 
-const nodeBXPos = 168;
-const nodeBYPos = 18;
+const nodeBBaseXPos = 168;
+const nodeBBaseYPos = 42;
+
 const clientNodeXPos = 186;
-const clientNodeYPos = 498;
+const clientNodeYPos = 550;
 
 export const clientNodePositions = {
 	mainText: {
@@ -45,7 +46,7 @@ export const nodeAPositions = {
 	},
 	leaseTimer: {
 		x: nodeABaseXPos - 48,
-		y: nodeABaseYPos + 42
+		y: nodeABaseYPos + 108
 	}
 }
 
@@ -75,11 +76,19 @@ export const nodeCPositions = {
 		y: nodeCBaseYPos - 85
 	}
 }
+
+export const nodeBPositions = {
+	base: {
+		x: nodeBBaseXPos,
+		y: nodeBBaseYPos
+	},
+}
+
 class MainDiagram extends Component {
 
 	render() {
 		return (
-			<svg height="464" width="380">
+			<svg height="500" width="380">
 				{/* reusable analog clock */}
 				<defs>
 					<SmallClock/>
@@ -90,9 +99,12 @@ class MainDiagram extends Component {
 				<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCPositions.messageToA.x} cy={nodeCPositions.messageToB.y} />
 				<circle id="node-c-message-to-client" className="node-small-circle visibility-hidden" cx={nodeCPositions.messageToClient.x} cy={nodeCPositions.messageToClient.y} />
 
-				<circle id="client-message" className="client-message visibility-hidden" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
+				<g id="client-message" className="visibility-hidden">
+					<circle id="client-message-circle" className="client-message" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
+					<text id="client-message-text" x={clientNodePositions.clientMessage.x - 18} y={clientNodePositions.clientMessage.y + 24} />
+				</g>
 
-				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} />
+				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y + 12} />
 
 				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
 				<circle id="node-a-message-to-client" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToClient.x} cy={nodeAPositions.messageToClient.y} />
@@ -103,6 +115,10 @@ class MainDiagram extends Component {
 				</g>
 				<g id="node-c-lease-to-node-b" className="visibility-hidden">
 					<use href="#analog-clock" x={nodeCPositions.base.x + 24} y={nodeCPositions.base.y - 36}/>
+				</g>
+
+				<g id="node-a-lease-to-node-b" className="">
+					<use href="#analog-clock" x={nodeAPositions.base.x} y={nodeAPositions.base.y - 36}/>
 				</g>
 
 				{/* node C */}
@@ -124,14 +140,18 @@ class MainDiagram extends Component {
 					<text id="node-c-main-text" x={nodeCPositions.base.x + 30} y={nodeCPositions.base.y + 6} className="node-text visibility-hidden" fill="black">
 						<tspan>5</tspan>
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_C)} x={nodeCPositions.base.x - 18} y={nodeCPositions.base.y + 42}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_C)} x={nodeCPositions.base.x - 48} y={nodeCPositions.base.y + 118}
+					label={"My Lease"}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_C)} x={nodeCPositions.base.x - 48} y={nodeCPositions.base.y + 148}
+					label={"Leader Lease"}/>
 				</g>
 
 				{/* text */}
 				<text x={nodeCPositions.base.x} y={nodeCPositions.base.y} fill="black">
-					<tspan x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 84}>Node C</tspan>
-					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 102}>Term: 0</tspan>
-					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 120}>Vote Count: 1</tspan>
+					<tspan x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 54}>Node C</tspan>
+					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 90}>Vote Count: 1</tspan>
+					<tspan id="node-c-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeCPositions.base.x - 6} y={nodeCPositions.base.y + 108} >FOO</tspan>
 				</text>
 
 				{/* node A */}
@@ -143,34 +163,38 @@ class MainDiagram extends Component {
 					<text id="node-a-main-text" x={nodeAPositions.base.x} y={nodeAPositions.base.y + 6} className="node-text visibility-hidden">
 						<tspan>5</tspan>
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x} y={nodeAPositions.leaseTimer.y}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y + 12} label={"My Lease"}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y + 42} label={"Leader Lease"}/>
 				</g>
 
 				{/* text */}
 				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
-					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 84}>Node A</tspan>
-					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 102}>Term: 0</tspan>
-					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 120}>Voted For: C</tspan>
+					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 54}>Node A</tspan>
+					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 90}>Voted For: C</tspan>
+					<tspan id="node-a-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeAPositions.base.x - 36} y={nodeAPositions.base.y + 108} ></tspan>
 
 				</text>
 
 				{/* node B */}
-				<text x={nodeBXPos} y={nodeBYPos} fill="black">
-					<tspan x={nodeBXPos} y={nodeBYPos + 18}>Node B</tspan>
-					<tspan id="node-b-term-text" x={nodeBXPos} y={nodeBYPos + 36}>Term: 0</tspan>
-					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBXPos} y={nodeBYPos + 54}>Voted For: C</tspan>
-				</text>
-
 
 				{/* main and outer circles */}
 				<g id="node-b-wrap">
-					<circle id="node-b-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBXPos + 24} cy={nodeBYPos + 102} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
-					<text id="node-b-main-text" x={nodeBXPos + 24} y={nodeBYPos + 108} className="node-text visibility-hidden">
-						<tspan>5</tspan>
+					<circle id="node-b-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<text id="node-b-main-text" x={nodeBPositions.base.x + 24} y={nodeBPositions.base.y + 6} className="node-text visibility-hidden">
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.constructTimerElementId(Constants.NODE_B)} x={nodeBXPos - 24} y={nodeBYPos + 50}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_B)} x={nodeBPositions.base.x - 54} y={nodeBPositions.base.y + 120} label={"My Lease"}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_B)} x={nodeBPositions.base.x - 54} y={nodeBPositions.base.y + 148} label="Leader Lease"/>
 				</g>
+
+				{/* text */}
+				<text x={nodeBPositions.base.x} y={nodeBPositions.base.y} fill="black">
+					<tspan x={nodeBPositions.base.x} y={nodeBPositions.base.y + 54}>Node B</tspan>
+					<tspan id="node-b-term-text" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 90}>Voted For: C</tspan>
+					<tspan id="node-b-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeBPositions.base.x - 12} y={nodeBPositions.base.y + 108} ></tspan>
+				</text>
 
 				{/* client node */}
 				<g id="client-node">
