@@ -75,7 +75,7 @@ export function introduceClient(clientTextValue) {
 	}
 	var animation = anime({
 		targets: clientNode,
-		translateY: -72
+		translateY: -84
 	});
 	return animation;
 }
@@ -89,12 +89,12 @@ export function messageFromClient(destination, params) {
 	switch (destination) {
 		case Constants.NODE_C: {
 			translateX = 100;
-			translateY = -100;
+			translateY = -120;
 			break;
 		}
 		case Constants.NODE_A: {
 			translateX = -160;
-			translateY = -120;
+			translateY = -156;
 			break;
 		}
 		default: {
@@ -117,24 +117,26 @@ export function messageFromClient(destination, params) {
 	return animation;
 }
 
-export function logMessageFromAToB(withAck) {
-	return sendLogMessage(Constants.NODE_A, Constants.NODE_B, withAck);
-}
-
 export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, delay, destinationTimerAnimation, srcTimerAnimation) {
 	console.log('FromNode: ' + fromNode + " toNode: " + toNode + " withAck: " + withAck + " value: " + value + " commitValue: " + commitValue);
 	var method = null;
 	var messageElement = null;
 	var textElementId = null;
 	var sourceNodeTextElementId = null;
+	var messageContrainer = null;
+	var additionalTextElementID = null;
+	var sourceNodeAdditionalTextElementId = null;
+
 	switch(fromNode) {
 		case Constants.NODE_A: {
 			method = messageFromA;
 			sourceNodeTextElementId = 'node-a-extra-text';
+			sourceNodeAdditionalTextElementId = 'node-a-extra-text2';
 
 			if(toNode == Constants.NODE_B) {
 				messageElement = document.getElementById('node-a-message-to-b');
 				textElementId = 'node-b-extra-text';
+				additionalTextElementID = 'node-b-extra-text2';
 			} else if (toNode == Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-a-message-to-client');
 			}
@@ -143,13 +145,16 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 		case Constants.NODE_C: {
 			method = messageFromC;
 			sourceNodeTextElementId = 'node-c-extra-text';
+			sourceNodeAdditionalTextElementId = 'node-c-extra-text2';
 
 			if (toNode == Constants.NODE_A) {
 				messageElement = document.getElementById('node-c-message-to-a');
 				textElementId = 'node-a-extra-text';
+				additionalTextElementID = 'node-a-extra-text2';
 			} else if (toNode == Constants.NODE_B) {
 				messageElement = document.getElementById('node-c-message-to-b');
 				textElementId = 'node-b-extra-text';
+				additionalTextElementID = 'node-b-extra-text2';
 			} else if (toNode == Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-c-message-to-client');
 			}
@@ -157,15 +162,18 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 		}
 		case Constants.CLIENT_NODE: {
 			method = messageFromClient;
+			messageElement = document.getElementById('client-message-circle');
+			messageContrainer = document.getElementById('client-message');
+
 			if (toNode == Constants.NODE_A) {
-				messageElement = document.getElementById('client-message');
 				textElementId = 'node-a-extra-text';
+				additionalTextElementID = 'node-a-extra-text2';
 			} else if (toNode == Constants.NODE_B) {
-				messageElement = document.getElementById('client-message');
 				textElementId = 'node-b-extra-text';
+				additionalTextElementID = 'node-b-extra-text2';
 			} else if (toNode == Constants.NODE_C) {
-				messageElement = document.getElementById('client-message');
 				textElementId = 'node-c-extra-text';
+				additionalTextElementID = 'node-c-extra-text2';
 			}
 			break;
 		}
@@ -193,15 +201,18 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 					messageElement.classList.add('log-message-ack');
 				}
 
+				var additionalText = null;
 				if (value && textElementId){
 					var addCSSClass = "";
 					var removeCSSClass = "";
 					if (commitValue) {
 						addCSSClass = "set-text-committed";
 						removeCSSClass = "set-text-uncommitted";
+						additionalText = Constants.COMMITED;
 					} else {
 						addCSSClass = "set-text-uncommitted";
 						removeCSSClass = "set-text-committed";
+						additionalText = Constants.UNCOMMITED;
 					}
 
 					setSVGText({
@@ -211,20 +222,39 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 						removeCSSClass:removeCSSClass,
 						showElement: true,
 					});
+
+					console.log('additionalText: ' + additionalText + 'additionalTextElementID: ' + additionalTextElementID);
+					if (additionalText != null && additionalTextElementID){
+						console.log('will update additionalText');
+						setSVGText({
+							targetId: additionalTextElementID,
+							text: additionalText,
+							addCSSClass: addCSSClass,
+							removeCSSClass:removeCSSClass,
+							showElement: true,
+						});
+					}
 				}
 			},
 			onComplete: anim => {
 				if (withAck) {
 					messageElement.classList.remove('log-message-ack');
 					// we got the ack back so uncommited text should be shown as commited now
-					if (sourceNodeTextElementId) {
+					if (value && sourceNodeTextElementId) {
 						setSVGText({targetId: sourceNodeTextElementId, addCSSClass: "set-text-committed"});
+					}
+					if (value && sourceNodeAdditionalTextElementId){
+						setSVGText({targetId: sourceNodeAdditionalTextElementId, text: Constants.COMMITED, addCSSClass: "set-text-committed"});
 					}
 				}
 				if (srcTimerAnimation) {
 					srcTimerAnimation.restart();
 				}
 				messageElement.style.transform = 'none';
+				if (messageContrainer) {
+					messageContrainer.style.transform = 'none';
+				}
+
 			},
 			alternate: withAck,
 		});
@@ -254,7 +284,7 @@ export function messageFromC(destination, params) {
 	var targets = "";
 	if (destination == Constants.NODE_B) {
 		translateX = -132;
-		translateY = -220;
+		translateY = -290;
 		targets = '#node-c-message-to-b';
 	} else if (destination == Constants.NODE_A) {
 		targets = '#node-c-message-to-a';
@@ -262,7 +292,7 @@ export function messageFromC(destination, params) {
 	} else if (destination == Constants.CLIENT_NODE) {
 		targets = '#node-c-message-to-client';
 		translateX = -100;
-		translateY = 100;
+		translateY = 130;
 	}
 
 	var animation = anime({
@@ -286,12 +316,12 @@ export function messageFromA(destination, params) {
 	var targets = "";
 	if (destination == Constants.NODE_B) {
 		translateX = 160;
-		translateY = -200;
+		translateY = -290;
 		targets = '#node-a-message-to-b';
 	}
 	else if (destination == Constants.CLIENT_NODE) {
 		translateX = 150;
-		translateY = 100;
+		translateY = 148;
 		targets = '#node-a-message-to-client';
 	}
 	else {
@@ -316,7 +346,7 @@ export function messageFromA(destination, params) {
 }
 
 export function getSetValueText(value) {
-	return "SET " + value;
+	return "Value: " + value;
 }
 
 export function partitionNodeC() {
@@ -324,21 +354,39 @@ export function partitionNodeC() {
 	showElement(nodeCPartition);
 }
 
-export function startLeaseTimer(forNode, duration){
-	var targetId = constructTimerElementId(forNode);
+export function startMyLeaseTimer(forNode, duration){
+	var targetId = myLeaseTimerId(forNode);
+	return startLeaseTimer(targetId, forNode, duration);
+}
+export function startLeaderLeaseTimer(forNode, duration){
+	var targetId = leaderLeaseTimerId(forNode);
+	return startLeaseTimer(targetId, forNode, duration);
+}
+
+export function startLeaseTimer(targetId, forNode, duration){
 	var timer = document.getElementById(targetId);
-	showElement(timer)
+	showElement(timer);
+
+	var innerRect = document.getElementById(targetId + '-inner');
 	var animation = anime({
-		targets: timer,
+		targets: innerRect,
 		width: '0',
-		easing: 'easeInOutQuad',
+		easing: 'easeOutCubic',
 		duration: duration,
 	});
 	return animation;
 }
 
-export function constructTimerElementId(forNode) {
-	var id = "htimer-rect-";
+export function myLeaseTimerId(forNode) {
+	return constructTimerId("mlease-rect-", forNode);
+}
+
+export function leaderLeaseTimerId(forNode) {
+	return constructTimerId("llease-rect", forNode);
+}
+
+function constructTimerId(prefix, forNode) {
+	var id = prefix;
 	switch(forNode) {
 		case Constants.NODE_C: {
 			id += "node-c";

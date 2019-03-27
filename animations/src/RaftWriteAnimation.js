@@ -191,29 +191,12 @@ class RaftWriteAnimation extends Component {
 				var introClientAnimation = HelperFunctions.introduceClient();
 
 				introClientAnimation.finished.then(() => {
-					var clientMessage = document.getElementById('client-message');
-					HelperFunctions.showElement(clientMessage);
-
-					var clientMessageAnimation = anime({
-						targets: '#client-message',
-						translateX: 100,
-						translateY: -100,
-						easing: 'linear',
-						duration: 800,
-					});
-					clientMessageAnimation.finished.then(() => {
-						HelperFunctions.setSVGText(
-							{
-								targetId: 'node-c-extra-text',
-								text: "SET 5",
-								addCSSClass: "set-text-uncommitted",
-								showElement: true,
-							}
-						);
+					var messageToCAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1));
+					messageToCAnimation.finished.then(() => {
 						this.animationState = AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER;
 						resolve({
 							animationState: this.animationState,
-							delay: 2000,
+							delay: 1000,
 						});
 					})
 				});
@@ -222,7 +205,7 @@ class RaftWriteAnimation extends Component {
 			case AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: {
 				this.changeMainText("The log entry is currently uncommitted, so it won't update the node's value. To commit the entry the node first replicates it to the follower nodes", () => {
 					// send log messages to follower nodes
-					var animations = HelperFunctions.logMessageFromLeaderToFollowers(true, "SET " + SET_VALUE1);
+					var animations = HelperFunctions.logMessageFromLeaderToFollowers(true, HelperFunctions.getSetValueText(SET_VALUE1));
 					var animationPromises = HelperFunctions.getFinishPromises(animations);
 
 					// wait for both animations to finish before proceeding
@@ -258,7 +241,7 @@ class RaftWriteAnimation extends Component {
 			case AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: {
 				this.changeMainText("The leader then notifies followers and the client that entry is committed", () => {
 					// notify followers that leader has committed the entries
-					var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,"SET " + SET_VALUE1, true);
+					var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,HelperFunctions.getSetValueText(SET_VALUE1), true);
 					var animationPromises = HelperFunctions.getFinishPromises(animations);
 
 					// and notify client as well

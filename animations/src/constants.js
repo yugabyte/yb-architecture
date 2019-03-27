@@ -5,5 +5,6 @@ export var Constants = {
 	NODE_C: "NODE_C",
 	CLIENT_NODE: "CLIENT_NODE",
 	ANIMATION_STATE_FINISHED: "ANIMATION_STATE_FINISHED",
-
+	COMMITED: "(commited)",
+	UNCOMMITED: "(uncommitted)",
 }
