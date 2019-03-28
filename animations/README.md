@@ -20,6 +20,8 @@ Now you can open the following links.
 * [Achieving leader-only reads in Raft with leader leases](http://localhost:3000/raft-read-with-leader-leases)
 
 
+## Building the app
+
 To build the app, just do:
 
 ```
