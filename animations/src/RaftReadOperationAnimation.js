@@ -59,12 +59,12 @@ export class RaftReadOperationAnimation extends Component {
 				var clientMainText = document.getElementById('client-node-main-text');
 				HelperFunctions.hideElement(clientMainText);
 
-				HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE1, showElement: true });
-				HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE1, showElement: true });
-				HelperFunctions.setSVGText({targetId: 'node-c-main-text', text: SET_VALUE1, showElement: true });
+				HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: "Node A", showElement: true });
+				HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: "Node B", showElement: true });
+				HelperFunctions.setSVGText({targetId: 'node-c-main-text', text: "Node C", showElement: true });
 
 				//////////////////////////////////////////////////////
-				this.changeMainText('Read problem solution in Raft ...', () => {
+				this.changeMainText('Performing a read in Raft', () => {
 					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
 					introduceClientAnimation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_CLIENT_INTRODUCED;

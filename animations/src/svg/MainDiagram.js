@@ -149,7 +149,7 @@ class MainDiagram extends Component {
 				{/* text */}
 				<text x={nodeCPositions.base.x} y={nodeCPositions.base.y} fill="black">
 					<tspan x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 54}>Node C</tspan>
-					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 72}>Term: 1</tspan>
 					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 90}>Vote Count: 1</tspan>
 					<tspan id="node-c-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeCPositions.base.x - 6} y={nodeCPositions.base.y + 108} >FOO</tspan>
 				</text>
@@ -170,7 +170,7 @@ class MainDiagram extends Component {
 				{/* text */}
 				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
 					<tspan x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 54}>Node A</tspan>
-					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 1</tspan>
 					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 90}>Voted For: C</tspan>
 					<tspan id="node-a-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeAPositions.base.x - 36} y={nodeAPositions.base.y + 108} ></tspan>
 
@@ -191,7 +191,7 @@ class MainDiagram extends Component {
 				{/* text */}
 				<text x={nodeBPositions.base.x} y={nodeBPositions.base.y} fill="black">
 					<tspan x={nodeBPositions.base.x} y={nodeBPositions.base.y + 54}>Node B</tspan>
-					<tspan id="node-b-term-text" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 72}>Term: 0</tspan>
+					<tspan id="node-b-term-text" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 72}>Term: 1</tspan>
 					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 90}>Voted For: C</tspan>
 					<tspan id="node-b-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeBPositions.base.x - 12} y={nodeBPositions.base.y + 108} ></tspan>
 				</text>

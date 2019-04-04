@@ -63,12 +63,17 @@ class AnimationRunner extends Component {
 
 		return(
 			<div className="animation-runner">
-				<div className="control-btns">
-					<button className="yb-btn" disabled={this.state.animationPlaying} onClick={this.onPlayClicked}>Play</button>
-					<button className="yb-btn" onClick={this.onRestartClicked}>Restart</button>
-				</div>
+				<div id="main-text-sect"></div>
 				<Animation ref={n => this.currentAnimation = n}></Animation>
-				<div id="main-text-sect">
+				<div className="control-btns">
+					<button className="yb-btn" disabled={this.state.animationPlaying} onClick={this.onPlayClicked}>
+						<i class="fas fa-play" aria-hidden="true"></i>
+						<span class="yb-button-text">Continue</span>
+					</button>
+					<button className="yb-btn" onClick={this.onRestartClicked}>
+						<i class="fas fa-fast-backward" aria-hidden="true"></i>
+						<span class="yb-button-text">Restart</span>
+					</button>
 				</div>
 			</div>
 		)
