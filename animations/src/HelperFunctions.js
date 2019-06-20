@@ -71,7 +71,7 @@ export function setTextWithAnimation(textSect, text, onComplete, delay) {
 export function introduceClient(clientTextValue) {
 	var clientNode = document.getElementById("client-node");
 	if (clientTextValue) {
-		setSVGText({targetId: "client-node-main-text", text: clientTextValue})
+		setSVGText({targetId: "client-node-value", text: clientTextValue})
 	}
 	var animation = anime({
 		targets: clientNode,
