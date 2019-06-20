@@ -23,6 +23,9 @@ export class RaftReadOperationAnimation extends Component {
 	constructor(props) {
 		super(props);
 		this.animationState = ANIMATION_STATE_INITIAL;
+		this.state = {
+			animationFinished: false,
+		}
 	}
 
 	componentDidMount() {
@@ -56,16 +59,9 @@ export class RaftReadOperationAnimation extends Component {
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
 				}
 
-				var clientMainText = document.getElementById('client-node-main-text');
-				HelperFunctions.hideElement(clientMainText);
-
-				HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: "Node A", showElement: true });
-				HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: "Node B", showElement: true });
-				HelperFunctions.setSVGText({targetId: 'node-c-main-text', text: "Node C", showElement: true });
-
 				//////////////////////////////////////////////////////
 				this.changeMainText('Performing a read in Raft', () => {
-					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
+					var introduceClientAnimation = HelperFunctions.introduceClient('');
 					introduceClientAnimation.finished.then(() => {
 						this.animationState = ANIMATION_STATE_CLIENT_INTRODUCED;
 						resolve({
@@ -105,6 +101,7 @@ export class RaftReadOperationAnimation extends Component {
 						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE1, showElement: true });
 
 						this.animationState = Constants.ANIMATION_STATE_FINISHED;
+						this.setState({ animationFinished: true });
 						resolve({
 							animationState: this.animationState,
 							delay: 100
@@ -114,7 +111,6 @@ export class RaftReadOperationAnimation extends Component {
 				break;
 			}
 			case Constants.ANIMATION_STATE_FINISHED: {
-				console.log('Animation finished. Nothing to do');
 				resolve({
 					animationState: this.animationState,
 					delay: 100,

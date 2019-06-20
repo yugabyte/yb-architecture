@@ -25,6 +25,9 @@ class RaftWriteAnimation extends Component {
 	constructor(props) {
 		super(props);
 		this.animationState = AnimationState.INITIAL;
+		this.state = {
+			animationFinished: false,
+		}
 	}
 
 	pause() {
@@ -274,6 +277,7 @@ class RaftWriteAnimation extends Component {
 
 				this.changeMainText("The cluster has now come to consensus about the system state");
 				this.animationState = Constants.ANIMATION_STATE_FINISHED;
+				this.setState({ animationFinished: true });
 				resolve({
 					animationState: this.animationState,
 					delay: 100,
@@ -281,7 +285,6 @@ class RaftWriteAnimation extends Component {
 				break;
 			}
 			case Constants.ANIMATION_STATE_FINISHED: {
-				console.log('Animation finished. Nothing to do');
 				resolve({
 					animationState: this.animationState,
 					delay: 100,

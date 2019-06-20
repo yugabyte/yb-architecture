@@ -30,6 +30,9 @@ export class ReadOperationAnimation extends Component {
 	constructor(props) {
 		super(props);
 		this.animationState = ANIMATION_STATE_INITIAL;
+		this.state = {
+			animationFinished: false,
+		}
 	}
 
 	componentDidMount() {
@@ -56,7 +59,7 @@ export class ReadOperationAnimation extends Component {
 
 				// hide all outer circles (TODO: revisit this approach)
 				var nodeOuterCircles = document.getElementsByClassName('node-outer-circle');
-				for (var i = 0; i < nodeOuterCircles.length; i++){
+				for (var i = 0; i < nodeOuterCircles.length; i++) {
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
 				}
 				//////////////////////////////////////////////////////
@@ -95,12 +98,6 @@ export class ReadOperationAnimation extends Component {
 
 				// wait for both the animations to complete
 				Promise.all(finishPromises).then(() => {
-					// mark entry commited on leader
-					HelperFunctions.setSVGText({
-							targetId: "node-c-main-text",
-							text:SET_VALUE1,
-							showElement: true});
-
 					this.animationState = ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS;
 					resolve({
 						animationState: this.animationState,
@@ -118,10 +115,6 @@ export class ReadOperationAnimation extends Component {
 				HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
 
 				Promise.all(finishPromises).then(() => {
-					// mark entry commited on both followers
-					HelperFunctions.setSVGText({targetId: "node-a-main-text",text:SET_VALUE1,showElement: true});
-					HelperFunctions.setSVGText({targetId: "node-b-main-text",text:SET_VALUE1,showElement: true});
-
 					this.animationState = ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS;
 					resolve({
 						animationState: this.animationState,
@@ -240,6 +233,7 @@ export class ReadOperationAnimation extends Component {
 						});
 					})
 					this.animationState = Constants.ANIMATION_STATE_FINISHED;
+					this.setState({ animationFinished: true });
 					resolve({
 						animationState: this.animationState,
 						delay: 100,
@@ -248,7 +242,6 @@ export class ReadOperationAnimation extends Component {
 				break;
 			}
 			case Constants.ANIMATION_STATE_FINISHED: {
-				console.log('Animation finished. Nothing to do');
 				resolve({
 					animationState: this.animationState,
 					delay: 100,
