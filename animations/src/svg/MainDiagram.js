@@ -114,7 +114,9 @@ class MainDiagram extends Component {
 					<tspan id="client-message-status-text1" x={clientX - 30} dy="1.2em"></tspan>
 					<tspan id="client-message-status-text2" x={clientX - 30} dy="1.2em"></tspan>
 				</text>
-				<polygon id="client-message-bubble" className="visibility-hidden" points={`${clientX + 20},${clientY - 40} ${clientX + 20},${clientY - 70} ${clientX - 40},${clientY - 70} ${clientX - 40},${clientY - 140} ${clientX + 100},${clientY - 140} ${clientX + 100},${clientY - 70} ${clientX + 40},${clientY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+				<path id="client-message-bubble" className="visibility-hidden"
+					d={`M${clientX + 20},${clientY - 40} l0,-26 l-55,0 c0,0 -5,0 -5,-5 l0,-65 c0,0 0,-5 5,-5 l135,0 c0,0 5,0 5,5 l0,65 c0,0 0,5 -5,5 l-70,0 z`}
+					style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
 				
 				<g id="client-message" className="visibility-hidden">
 					<circle id="client-message-circle" className="client-message" cx={clientX} cy={clientY}/>
@@ -175,7 +177,9 @@ class MainDiagram extends Component {
 					<tspan id="node-c-message-status-text1" x={nodeCX - 10} dy="1.2em"></tspan>
 					<tspan id="node-c-message-status-text2" x={nodeCX - 10} dy="1.2em"></tspan>
 				</text>
-				<polygon id="node-c-message-bubble" className="visibility-hidden" points={`${nodeCX + 40},${nodeCX - 40} ${nodeCX + 40},${nodeCY - 70} ${nodeCX - 20},${nodeCY - 70} ${nodeCX - 20},${nodeCY - 140} ${nodeCX + 200},${nodeCY - 140} ${nodeCX + 200},${nodeCY - 70} ${nodeCX + 60},${nodeCY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+				<path id="node-c-message-bubble" className="visibility-hidden"
+					d={`M${nodeCX + 40},${nodeCX - 40} l0,-26 l-55,0 c0,0 -5,0 -5,-5 l0,-65 c0,0 0,-5 5,-5 l215,0 c0,0 5,0 5,5 l0,65 c0,0 0,5 -5,5 l-140,0 z`}
+					style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
 
 				{/* node A */}
 
@@ -202,9 +206,10 @@ class MainDiagram extends Component {
 				<text id="node-a-message-status" x={nodeAX - 10} y={nodeAY - 130} className="visibility-hidden">
 					<tspan id="node-a-message-status-text1" x={nodeAX - 30} dy="1.2em"></tspan>
 					<tspan id="node-a-message-status-text2" x={nodeAX - 30} dy="1.2em"></tspan>
-				</text>
-				<polygon id="node-a-message-bubble" className="visibility-hidden" points={`${nodeAX + 20},${nodeAY - 40} ${nodeAX + 20},${nodeAY - 70} ${nodeAX - 40},${nodeAY - 70} ${nodeAX - 40},${nodeAY - 140} ${nodeAX + 100},${nodeAY - 140} ${nodeAX + 100},${nodeAY - 70} ${nodeAX + 40},${nodeAY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
-
+				</text>		
+				<path id="node-a-message-bubble" className="visibility-hidden"
+					d={`M${nodeAX + 20},${nodeAY - 40} l0,-26 l-55,0 c0,0 -5,0 -5,-5 l0,-65 c0,0 0,-5 5,-5 l155,0 c0,0 5,0 5,5 l0,65 c0,0 0,5 -5,5 l-70,0 z`}
+					style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
 				{/* node B */}
 
 				{/* main and outer circles */}
