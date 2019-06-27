@@ -87,8 +87,16 @@ export const nodeBPositions = {
 class MainDiagram extends Component {
 
 	render() {
+		// Initialize variables for each node location
+		// These are numbers so we can't destructure..
 		const clientX = clientNodePositions.clientMessage.x;
 		const clientY = clientNodePositions.clientMessage.y;
+		const nodeAX = nodeAPositions.base.x;
+		const nodeAY = nodeAPositions.base.y;
+		const nodeBX = nodeBPositions.base.x;
+		const nodeBY = nodeBPositions.base.y;
+		const nodeCX = nodeCPositions.base.x;
+		const nodeCY = nodeCPositions.base.y;
 
 		return (
 			<svg height="500" width="720">
@@ -109,26 +117,26 @@ class MainDiagram extends Component {
 				<polygon id="client-message-bubble" className="visibility-hidden" points={`${clientX + 20},${clientY - 40} ${clientX + 20},${clientY - 70} ${clientX - 40},${clientY - 70} ${clientX - 40},${clientY - 140} ${clientX + 100},${clientY - 140} ${clientX + 100},${clientY - 70} ${clientX + 40},${clientY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
 				
 				<g id="client-message" className="visibility-hidden">
-					<circle id="client-message-circle" className="client-message" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
-					<text id="client-message-text" x={clientNodePositions.clientMessage.x - 18} y={clientNodePositions.clientMessage.y + 24}>
+					<circle id="client-message-circle" className="client-message" cx={clientX} cy={clientY}/>
+					<text id="client-message-text" x={clientX - 18} y={clientY + 24}>
 					</text>
 				</g>
 				
-				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y + 12} />
+				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBX + 24} cy={nodeBY + 12} />
 
 				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
 				<circle id="node-a-message-to-client" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToClient.x} cy={nodeAPositions.messageToClient.y} />
 
 				{/* lease messages */}
 				<g id="node-c-lease-to-node-a" className="visibility-hidden">
-					<use href="#analog-clock" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y - 36}/>
+					<use href="#analog-clock" x={nodeCX + 6} y={nodeCY - 36}/>
 				</g>
 				<g id="node-c-lease-to-node-b" className="visibility-hidden">
-					<use href="#analog-clock" x={nodeCPositions.base.x + 24} y={nodeCPositions.base.y - 36}/>
+					<use href="#analog-clock" x={nodeCX + 24} y={nodeCY - 36}/>
 				</g>
 
 				<g id="node-a-lease-to-node-b" className="">
-					<use href="#analog-clock" x={nodeAPositions.base.x} y={nodeAPositions.base.y - 36}/>
+					<use href="#analog-clock" x={nodeAX} y={nodeAY - 36}/>
 				</g>
 
 				{/* node C */}
@@ -136,7 +144,7 @@ class MainDiagram extends Component {
 				{/* partition around C */}
 
 				<g id="node-c-partition-wrap" className="visibility-hidden">
-					<path d="M210,340a83.832377,83.832377,0,1,1,211,30" id="node-c-partition" className="node-partition"/>
+					<path d="M250,330a83.832377,83.832377,0,1,1,200,30" id="node-c-partition" className="node-partition"/>
 					<text fill="black">
 						<tspan x={nodeCPositions.partitionText1.x} y={nodeCPositions.partitionText1.y}>Partitioned</tspan>
 						<tspan x={nodeCPositions.partitionText2.x} y={nodeCPositions.partitionText2.y}>from A & B</tspan>
@@ -145,37 +153,37 @@ class MainDiagram extends Component {
 
 				{/* main and outer circles */}
 				<g id="node-c-wrap">
-					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
-					<circle id="node-c-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<text id="node-c-main-text" x={nodeCPositions.base.x + 30} y={nodeCPositions.base.y + 6} className="node-text" fill="black">
+					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCX + 32} cy={nodeCY} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
+					<circle id="node-c-circle" cx={nodeCX + 32} cy={nodeCY} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<text id="node-c-main-text" x={nodeCX + 30} y={nodeCY + 6} className="node-text" fill="black">
 						Node C
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_C)} x={nodeCPositions.base.x - 48} y={nodeCPositions.base.y + 118}
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 118}
 					label={"My Lease"}/>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_C)} x={nodeCPositions.base.x - 48} y={nodeCPositions.base.y + 148}
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 148}
 					label={"Leader Lease"}/>
 				</g>
 
-				<text x={nodeCPositions.base.x} y={nodeCPositions.base.y} fill="black">
-					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 72}>Term: 1</tspan>
-					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 90}>Vote Count: 1</tspan>
-					<tspan id="node-c-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeCPositions.base.x - 6} y={nodeCPositions.base.y + 108} >FOO</tspan>
+				<text x={nodeCX} y={nodeCY} fill="black">
+					<tspan id="node-c-term-text" x={nodeCX + 6} y={nodeCY + 72}>Term: 1</tspan>
+					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCX + 6} y={nodeCY + 90}>Vote Count: 1</tspan>
+					<tspan id="node-c-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeCX - 6} y={nodeCY + 108} >FOO</tspan>
 				</text>
 
 				{/* speech bubble */}
-				<text id="node-c-message-status" x={nodeCPositions.base.x - 10} y={nodeCPositions.base.y - 130} className="visibility-hidden">
-					<tspan id="node-c-message-status-text1" x={nodeCPositions.base.x - 10} dy="1.2em"></tspan>
-					<tspan id="node-c-message-status-text2" x={nodeCPositions.base.x - 10} dy="1.2em"></tspan>
+				<text id="node-c-message-status" x={nodeCX - 10} y={nodeCY - 130} className="visibility-hidden">
+					<tspan id="node-c-message-status-text1" x={nodeCX - 10} dy="1.2em"></tspan>
+					<tspan id="node-c-message-status-text2" x={nodeCX - 10} dy="1.2em"></tspan>
 				</text>
-				<polygon id="node-c-message-bubble" className="visibility-hidden" points={`${nodeCPositions.base.x + 40},${nodeCPositions.base.x - 40} ${nodeCPositions.base.x + 40},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x - 20},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x - 20},${nodeCPositions.base.y - 140} ${nodeCPositions.base.x + 200},${nodeCPositions.base.y - 140} ${nodeCPositions.base.x + 200},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x + 60},${nodeCPositions.base.y - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+				<polygon id="node-c-message-bubble" className="visibility-hidden" points={`${nodeCX + 40},${nodeCX - 40} ${nodeCX + 40},${nodeCY - 70} ${nodeCX - 20},${nodeCY - 70} ${nodeCX - 20},${nodeCY - 140} ${nodeCX + 200},${nodeCY - 140} ${nodeCX + 200},${nodeCY - 70} ${nodeCX + 60},${nodeCY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
 
 				{/* node A */}
 
 				{/* main and outer circles */}
 				<g id="node-a-wrap">
-					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
-					<circle id="node-a-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<text id="node-a-main-text" x={nodeAPositions.base.x} y={nodeAPositions.base.y + 6} className="node-text">
+					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAX} cy={nodeAY} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
+					<circle id="node-a-circle" cx={nodeAX} cy={nodeAY} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<text id="node-a-main-text" x={nodeAX} y={nodeAY + 6} className="node-text">
 						Node A
 					</text>
 					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y + 12} label={"My Lease"}/>
@@ -183,38 +191,38 @@ class MainDiagram extends Component {
 				</g>
 
 				{/* text */}
-				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
-					<tspan id="node-a-term-text" className="highlighted" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 1</tspan>
-					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 90}>Voted For: C</tspan>
-					<tspan id="node-a-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeAPositions.base.x - 36} y={nodeAPositions.base.y + 108} ></tspan>
+				<text x={nodeAX} y={nodeAY + 66} fill="black">
+					<tspan id="node-a-term-text" className="highlighted" x={nodeAX - 24} y={nodeAY + 72}>Term: 1</tspan>
+					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAX - 24} y={nodeAY + 90}>Voted For: C</tspan>
+					<tspan id="node-a-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeAX - 36} y={nodeAY + 108} ></tspan>
 
 				</text>
 
 				{/* speech bubble */}
-				<text id="node-a-message-status" x={nodeAPositions.base.x - 10} y={nodeAPositions.base.y - 130} className="visibility-hidden">
-					<tspan id="node-a-message-status-text1" x={nodeAPositions.base.x - 30} dy="1.2em"></tspan>
-					<tspan id="node-a-message-status-text2" x={nodeAPositions.base.x - 30} dy="1.2em"></tspan>
+				<text id="node-a-message-status" x={nodeAX - 10} y={nodeAY - 130} className="visibility-hidden">
+					<tspan id="node-a-message-status-text1" x={nodeAX - 30} dy="1.2em"></tspan>
+					<tspan id="node-a-message-status-text2" x={nodeAX - 30} dy="1.2em"></tspan>
 				</text>
-				<polygon id="node-a-message-bubble" className="visibility-hidden" points={`${nodeAPositions.base.x + 20},${nodeAPositions.base.y - 40} ${nodeAPositions.base.x + 20},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x - 40},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x - 40},${nodeAPositions.base.y - 140} ${nodeAPositions.base.x + 100},${nodeAPositions.base.y - 140} ${nodeAPositions.base.x + 100},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x + 40},${nodeAPositions.base.y - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+				<polygon id="node-a-message-bubble" className="visibility-hidden" points={`${nodeAX + 20},${nodeAY - 40} ${nodeAX + 20},${nodeAY - 70} ${nodeAX - 40},${nodeAY - 70} ${nodeAX - 40},${nodeAY - 140} ${nodeAX + 100},${nodeAY - 140} ${nodeAX + 100},${nodeAY - 70} ${nodeAX + 40},${nodeAY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
 
 				{/* node B */}
 
 				{/* main and outer circles */}
 				<g id="node-b-wrap">
-					<circle id="node-b-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
-					<text id="node-b-main-text" x={nodeBPositions.base.x + 24} y={nodeBPositions.base.y + 6} className="node-text">
+					<circle id="node-b-circle" cx={nodeBX + 24} cy={nodeBY} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
+					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBX + 24} cy={nodeBY} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
+					<text id="node-b-main-text" x={nodeBX + 24} y={nodeBY + 6} className="node-text">
 						Node B
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_B)} x={nodeBPositions.base.x - 54} y={nodeBPositions.base.y + 120} label={"My Lease"}/>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_B)} x={nodeBPositions.base.x - 54} y={nodeBPositions.base.y + 148} label="Leader Lease"/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 120} label={"My Lease"}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 148} label="Leader Lease"/>
 				</g>
 
 				{/* text */}
-				<text x={nodeBPositions.base.x} y={nodeBPositions.base.y} fill="black">
-					<tspan id="node-b-term-text" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 72}>Term: 1</tspan>
-					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBPositions.base.x} y={nodeBPositions.base.y + 90}>Voted For: C</tspan>
-					<tspan id="node-b-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeBPositions.base.x - 12} y={nodeBPositions.base.y + 108} ></tspan>
+				<text x={nodeBX} y={nodeBY} fill="black">
+					<tspan id="node-b-term-text" x={nodeBX} y={nodeBY + 72}>Term: 1</tspan>
+					<tspan id="node-b-extra-text" className="node-extra-text visibility-hidden" x={nodeBX} y={nodeBY + 90}>Voted For: C</tspan>
+					<tspan id="node-b-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeBX - 12} y={nodeBY + 108} ></tspan>
 				</text>
 
 				{/* client node */}
