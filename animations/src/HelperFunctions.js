@@ -88,8 +88,8 @@ export function messageFromClient(destination, params) {
 
 	switch (destination) {
 		case Constants.NODE_C: {
-			translateX = 100;
-			translateY = -120;
+			translateX = 140;
+			translateY = -140;
 			break;
 		}
 		case Constants.NODE_A: {
@@ -208,11 +208,11 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 					if (commitValue) {
 						addCSSClass = "set-text-committed";
 						removeCSSClass = "set-text-uncommitted";
-						additionalText = Constants.COMMITED;
+						additionalText = Constants.COMMITTED;
 					} else {
 						addCSSClass = "set-text-uncommitted";
 						removeCSSClass = "set-text-committed";
-						additionalText = Constants.UNCOMMITED;
+						additionalText = Constants.UNCOMMITTED;
 					}
 
 					setSVGText({
@@ -239,12 +239,12 @@ export function sendLogMessage(fromNode, toNode, withAck, value, commitValue, de
 			onComplete: anim => {
 				if (withAck) {
 					messageElement.classList.remove('log-message-ack');
-					// we got the ack back so uncommited text should be shown as commited now
+					// we got the ack back so uncommitted text should be shown as committed now
 					if (value && sourceNodeTextElementId) {
 						setSVGText({targetId: sourceNodeTextElementId, addCSSClass: "set-text-committed"});
 					}
 					if (value && sourceNodeAdditionalTextElementId){
-						setSVGText({targetId: sourceNodeAdditionalTextElementId, text: Constants.COMMITED, addCSSClass: "set-text-committed"});
+						setSVGText({targetId: sourceNodeAdditionalTextElementId, text: Constants.COMMITTED, addCSSClass: "set-text-committed"});
 					}
 				}
 				if (srcTimerAnimation) {
@@ -283,16 +283,16 @@ export function messageFromC(destination, params) {
 	var translateY = 0;
 	var targets = "";
 	if (destination == Constants.NODE_B) {
-		translateX = -132;
-		translateY = -290;
+		translateX = -140;
+		translateY = -276;
 		targets = '#node-c-message-to-b';
 	} else if (destination == Constants.NODE_A) {
 		targets = '#node-c-message-to-a';
-		translateX = -270;
+		translateX = -275;
 	} else if (destination == Constants.CLIENT_NODE) {
 		targets = '#node-c-message-to-client';
-		translateX = -100;
-		translateY = 130;
+		translateX = -130;
+		translateY = 135;
 	}
 
 	var animation = anime({

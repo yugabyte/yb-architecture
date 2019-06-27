@@ -11,7 +11,7 @@ var HelperFunctions = require('../HelperFunctions');
 const nodeABaseXPos = 42;
 const nodeABaseYPos = 324;
 
-const nodeCBaseXPos = 276;
+const nodeCBaseXPos = 320;
 const nodeCBaseYPos = 324;
 
 const nodeBBaseXPos = 168;
@@ -87,8 +87,11 @@ export const nodeBPositions = {
 class MainDiagram extends Component {
 
 	render() {
+		const clientX = clientNodePositions.clientMessage.x;
+		const clientY = clientNodePositions.clientMessage.y;
+
 		return (
-			<svg height="500" width="380">
+			<svg height="500" width="720">
 				{/* reusable analog clock */}
 				<defs>
 					<SmallClock/>
@@ -99,11 +102,18 @@ class MainDiagram extends Component {
 				<circle id="node-c-message-to-a" className="node-small-circle" cx={nodeCPositions.messageToA.x} cy={nodeCPositions.messageToB.y} />
 				<circle id="node-c-message-to-client" className="node-small-circle visibility-hidden" cx={nodeCPositions.messageToClient.x} cy={nodeCPositions.messageToClient.y} />
 
+				<text id="client-message-status" x={clientX - 30} y={clientY - 130} className="visibility-hidden">
+					<tspan id="client-message-status-text1" x={clientX - 30} dy="1.2em"></tspan>
+					<tspan id="client-message-status-text2" x={clientX - 30} dy="1.2em"></tspan>
+				</text>
+				<polygon id="client-message-bubble" className="visibility-hidden" points={`${clientX + 20},${clientY - 40} ${clientX + 20},${clientY - 70} ${clientX - 40},${clientY - 70} ${clientX - 40},${clientY - 140} ${clientX + 100},${clientY - 140} ${clientX + 100},${clientY - 70} ${clientX + 40},${clientY - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+				
 				<g id="client-message" className="visibility-hidden">
 					<circle id="client-message-circle" className="client-message" cx={clientNodePositions.clientMessage.x} cy={clientNodePositions.clientMessage.y}/>
-					<text id="client-message-text" x={clientNodePositions.clientMessage.x - 18} y={clientNodePositions.clientMessage.y + 24} />
+					<text id="client-message-text" x={clientNodePositions.clientMessage.x - 18} y={clientNodePositions.clientMessage.y + 24}>
+					</text>
 				</g>
-
+				
 				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y + 12} />
 
 				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
@@ -135,7 +145,7 @@ class MainDiagram extends Component {
 
 				{/* main and outer circles */}
 				<g id="node-c-wrap">
-					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-c-outer-circle" className="node-outer-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
 					<circle id="node-c-circle" cx={nodeCPositions.base.x+32} cy={nodeCPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
 					<text id="node-c-main-text" x={nodeCPositions.base.x + 30} y={nodeCPositions.base.y + 6} className="node-text" fill="black">
 						Node C
@@ -146,18 +156,24 @@ class MainDiagram extends Component {
 					label={"Leader Lease"}/>
 				</g>
 
-				{/* text */}
 				<text x={nodeCPositions.base.x} y={nodeCPositions.base.y} fill="black">
 					<tspan id="node-c-term-text" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 72}>Term: 1</tspan>
 					<tspan id="node-c-extra-text" className="node-extra-text visibility-hidden" x={nodeCPositions.base.x + 6} y={nodeCPositions.base.y + 90}>Vote Count: 1</tspan>
 					<tspan id="node-c-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeCPositions.base.x - 6} y={nodeCPositions.base.y + 108} >FOO</tspan>
 				</text>
 
+				{/* speech bubble */}
+				<text id="node-c-message-status" x={nodeCPositions.base.x - 10} y={nodeCPositions.base.y - 130} className="visibility-hidden">
+					<tspan id="node-c-message-status-text1" x={nodeCPositions.base.x - 10} dy="1.2em"></tspan>
+					<tspan id="node-c-message-status-text2" x={nodeCPositions.base.x - 10} dy="1.2em"></tspan>
+				</text>
+				<polygon id="node-c-message-bubble" className="visibility-hidden" points={`${nodeCPositions.base.x + 40},${nodeCPositions.base.x - 40} ${nodeCPositions.base.x + 40},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x - 20},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x - 20},${nodeCPositions.base.y - 140} ${nodeCPositions.base.x + 200},${nodeCPositions.base.y - 140} ${nodeCPositions.base.x + 200},${nodeCPositions.base.y - 70} ${nodeCPositions.base.x + 60},${nodeCPositions.base.y - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
+
 				{/* node A */}
 
 				{/* main and outer circles */}
 				<g id="node-a-wrap">
-					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-a-outer-circle" className="node-outer-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
 					<circle id="node-a-circle" cx={nodeAPositions.base.x} cy={nodeAPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
 					<text id="node-a-main-text" x={nodeAPositions.base.x} y={nodeAPositions.base.y + 6} className="node-text">
 						Node A
@@ -168,18 +184,25 @@ class MainDiagram extends Component {
 
 				{/* text */}
 				<text x={nodeAPositions.base.x} y={nodeAPositions.base.y + 66} fill="black">
-					<tspan id="node-a-term-text" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 1</tspan>
+					<tspan id="node-a-term-text" className="highlighted" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 72}>Term: 1</tspan>
 					<tspan id="node-a-extra-text" className="node-extra-text visibility-hidden" x={nodeAPositions.base.x - 24} y={nodeAPositions.base.y + 90}>Voted For: C</tspan>
 					<tspan id="node-a-extra-text2" className="node-extra-text2 visibility-hidden" x={nodeAPositions.base.x - 36} y={nodeAPositions.base.y + 108} ></tspan>
 
 				</text>
+
+				{/* speech bubble */}
+				<text id="node-a-message-status" x={nodeAPositions.base.x - 10} y={nodeAPositions.base.y - 130} className="visibility-hidden">
+					<tspan id="node-a-message-status-text1" x={nodeAPositions.base.x - 30} dy="1.2em"></tspan>
+					<tspan id="node-a-message-status-text2" x={nodeAPositions.base.x - 30} dy="1.2em"></tspan>
+				</text>
+				<polygon id="node-a-message-bubble" className="visibility-hidden" points={`${nodeAPositions.base.x + 20},${nodeAPositions.base.y - 40} ${nodeAPositions.base.x + 20},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x - 40},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x - 40},${nodeAPositions.base.y - 140} ${nodeAPositions.base.x + 100},${nodeAPositions.base.y - 140} ${nodeAPositions.base.x + 100},${nodeAPositions.base.y - 70} ${nodeAPositions.base.x + 40},${nodeAPositions.base.y - 70}`} style={{fillOpacity: 0, stroke:'black',strokeWidth:1}} />
 
 				{/* node B */}
 
 				{/* main and outer circles */}
 				<g id="node-b-wrap">
 					<circle id="node-b-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="0" fill="rgb(70, 130, 180)" />
-					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="35" stroke="rgb(70, 130, 180)" strokeWidth="14" fill="transparent" />
+					<circle id="node-b-outer-circle" className="node-outer-circle" cx={nodeBPositions.base.x + 24} cy={nodeBPositions.base.y} r="38" stroke="rgb(158, 196, 226)" strokeWidth="6" fill="transparent" />
 					<text id="node-b-main-text" x={nodeBPositions.base.x + 24} y={nodeBPositions.base.y + 6} className="node-text">
 						Node B
 					</text>
