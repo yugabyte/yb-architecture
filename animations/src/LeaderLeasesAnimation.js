@@ -157,7 +157,7 @@ export class LeaderLeaseAnimation extends Component {
             targets: clientContent,
             index: clientContent.str.length,
             easing: 'linear',
-            duration: 750,
+            duration: 600,
             update: function() {
               statusText.textContent = clientContent.str.substr(0, clientContent.index);
             },

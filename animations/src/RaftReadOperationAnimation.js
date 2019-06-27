@@ -86,7 +86,7 @@ export class RaftReadOperationAnimation extends Component {
 					targets: content,
 					index: content.str.length,
 					easing: 'linear',
-					duration: 800,
+					duration: 640,
 					update: function() {
 						statusTextLine2.textContent = content.str.substr(0, content.index);
 					},
@@ -120,7 +120,7 @@ export class RaftReadOperationAnimation extends Component {
 					targets: contentLine1,
 					index: contentLine1.str.length,
 					easing: 'linear',
-					duration: 1000,
+					duration: 800,
 					update: function() {
 						leaderTextLine1.textContent = contentLine1.str.substr(0, contentLine1.index);
 					},
@@ -129,7 +129,7 @@ export class RaftReadOperationAnimation extends Component {
 							targets: contentLine2,
 							index: contentLine2.str.length,
 							easing: 'linear',
-							duration: 1300,
+							duration: 1040,
 							update: function() {
 								leaderTextLine2.textContent = contentLine2.str.substr(0, contentLine2.index);
 							}
@@ -162,7 +162,7 @@ export class RaftReadOperationAnimation extends Component {
 					targets: leaderText1,
 					index: leaderText1.str.length,
 					easing: 'linear',
-					duration: 900,
+					duration: 720,
 					update: function() {
 						ltxt1.textContent = leaderText1.str.substr(0, leaderText1.index);
 					},
@@ -171,7 +171,7 @@ export class RaftReadOperationAnimation extends Component {
 							targets: leaderText2,
 							index: leaderText2.str.length,
 							easing: 'linear',
-							duration: 1350,
+							duration: 1080,
 							update: function() {
 								ltxt2.textContent = leaderText2.str.substr(0, leaderText2.index);
 							},

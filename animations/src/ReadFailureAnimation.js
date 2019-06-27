@@ -155,7 +155,7 @@ export class ReadOperationAnimation extends Component {
           targets: clientContent,
           index: clientContent.str.length,
           easing: 'linear',
-          duration: 500,
+          duration: 400,
           update: function() {
             statusText.textContent = clientContent.str.substr(0, clientContent.index);
           },
@@ -180,7 +180,7 @@ export class ReadOperationAnimation extends Component {
                   targets: successfulWrite,
                   index: successfulWrite.str.length,
                   easing: 'linear',
-                  duration: 1000,
+                  duration: 800,
                   update: function() {
                     ltxt1.textContent = successfulWrite.str.substr(0, successfulWrite.index);
                   },
@@ -224,7 +224,7 @@ export class ReadOperationAnimation extends Component {
           targets: clientContent,
           index: clientContent.str.length,
           easing: 'linear',
-          duration: 750,
+          duration: 600,
           update: function() {
             statusText.textContent = clientContent.str.substr(0, clientContent.index);
           },
