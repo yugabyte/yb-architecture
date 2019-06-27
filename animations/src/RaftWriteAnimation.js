@@ -16,7 +16,7 @@ var AnimationState = {
 	LOG_REPLICATION_INTRODUCE_CLIENT: "LOG_REPLICATION_INTRODUCE_CLIENT",
 	LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER: "LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER",
 	LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS: "LOG_REPLICATION_LEADER_RECEIVED_ALL_LOG_ACKS",
-	LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: "LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY",
+	LOG_REPLICATION_LEADER_HAS_COMMITTED_ENTRY: "LOG_REPLICATION_LEADER_HAS_COMMITTED_ENTRY",
 	LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER: "LOG_REPLICATION_FOLLOWERS_RECEIVED_COMMIT_MESSAGE_FROM_LEADER",
 };
 
@@ -70,7 +70,7 @@ class RaftWriteAnimation extends Component {
 					var onNodeCAnimationEnd = () => {
 						nodeAOuterCircle.classList.add('pause-animation');
 						nodeBOuterCircle.classList.add('pause-animation');
-
+						nodeCOuterCircle.style.display = 'none';
 						this.animationState = AnimationState.LEADER_ELECTION_NODE_TIMED_OUT;
 						resolve({
 							animationState: this.animationState,
@@ -233,7 +233,7 @@ class RaftWriteAnimation extends Component {
 						text: "5",
 						showElement: true,});
 
-					this.animationState = AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY;
+					this.animationState = AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITTED_ENTRY;
 					resolve({
 						animationState: this.animationState,
 						delay: 1000,
@@ -241,7 +241,7 @@ class RaftWriteAnimation extends Component {
 				});
 				break;
 			}
-			case AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITED_ENTRY: {
+			case AnimationState.LOG_REPLICATION_LEADER_HAS_COMMITTED_ENTRY: {
 				this.changeMainText("The leader then notifies followers and the client that entry is committed", () => {
 					// notify followers that leader has committed the entries
 					var animations = HelperFunctions.logMessageFromLeaderToFollowers(false,HelperFunctions.getSetValueText(SET_VALUE1), true);

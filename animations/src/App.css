@@ -188,3 +188,7 @@
 .yb-button-text {
   padding-left: 5px;
 }
+
+tspan.highlighted {
+	background: yellow;
+}

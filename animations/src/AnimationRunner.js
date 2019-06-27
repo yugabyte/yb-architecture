@@ -69,7 +69,7 @@ class AnimationRunner extends Component {
 				<div className="control-btns">
 					<button id="animation-ctrl-next" className="yb-btn" disabled={disableNext} onClick={this.onPlayClicked}>
 						<i className="fas fa-play" aria-hidden="true"></i>
-						<span class="yb-button-text">Next</span>
+						<span className="yb-button-text">Next</span>
 					</button>
 					<button id="animation-ctrl-restart" className="yb-btn" onClick={this.onRestartClicked}>
 						<i className="fas fa-fast-backward" aria-hidden="true"></i>

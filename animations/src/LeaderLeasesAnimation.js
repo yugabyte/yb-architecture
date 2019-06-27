@@ -12,7 +12,7 @@ const ANIMATION_STATE_INITIAL = "LEADER_LEASE_INITIAL";
 const ANIMATION_STATE_INTRODUCTION_MADE = "ANIMATION_STATE_INTRODUCTION_MADE";
 const ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS = "ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS";
 const ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER = "ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER";
-const ANIMATION_STATE_VALUE1_COMMITED = "ANIMATION_STATE_VALUE1_COMMITED";
+const ANIMATION_STATE_VALUE1_COMMITTED = "ANIMATION_STATE_VALUE1_COMMITTED";
 const ANIMATION_STATE_ORIGINAL_LEADER_PARITIONED = "ANIMATION_STATE_ORIGINAL_LEADER_PARITIONED";
 const ANIMATION_STATE_NEW_LEADER_CANDIDATE_ELECTED = "ANIMATION_STATE_NEW_LEADER_CANDIDATE_ELECTED";
 const ANIMATION_STATE_NEW_LEADER_ELECTED = "ANIMATION_STATE_NEW_LEADER_ELECTED";
@@ -24,7 +24,7 @@ const ANIMATION_STATE_NEW_LEADER_SENT_LEASES = "ANIMATION_STATE_NEW_LEADER_SENT_
 
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
-const ORIGINAL_LEADER_TIMER_DURATION = 9000;
+const ORIGINAL_LEADER_TIMER_DURATION = 16000;
 const NODE_A_TIMER_DURATION = 14000;
 const NODE_B_TIMER_DURATION = 30000;
 
@@ -73,19 +73,16 @@ export class LeaderLeaseAnimation extends Component {
 				for (var i = 0; i < nodeOuterCircles.length; i++){
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
 				}
+				// make Node C  the leader
+				var nodeC = document.getElementById('node-c-circle');
+				nodeC.classList.add('leader-node');
 				//////////////////////////////////////////////////////
-				this.changeMainText('Read problem solution in YugaByte DB ...', () => {
-					this.changeMainText('Lets suppose Node C was initially elected as the leader', () => {
-						// make Node C the Leader
-						var nodeC = document.getElementById('node-c-circle');
-						nodeC.classList.add('leader-node');
-
+				this.changeMainText('Read-problem solution in YugaByte DB...', () => {
 						this.animationState = ANIMATION_STATE_INTRODUCTION_MADE;
 						resolve({
 							animationState: this.animationState,
 							delay: 1000,
 						});
-					});
 				});
 				break;
 			}
@@ -143,62 +140,59 @@ export class LeaderLeaseAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_LEASES_SENT_TO_FOLLOWERS: {
-				this.changeMainText('Client arrives and performs a write', () => {
-					var introduceClientAnimation = HelperFunctions.introduceClient(SET_VALUE1);
-					introduceClientAnimation.finished.then(() => {
-						var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1), false, 0);
-						writeAnimation.finished.then(() => {
-							this.animationState = ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER;
-							resolve({
-								animationState: this.animationState,
-								delay: 1000,
-							});
-						})
-					});
-				});
+        this.changeMainText('');
+        var introduceClientAnimation = HelperFunctions.introduceClient(`Value: ${SET_VALUE1}`);
+        introduceClientAnimation.finished.then(() => {
+          const statusElem = document.getElementById('client-message-status');
+          const testing = {
+            index: 0,
+            str: `SET k = ${SET_VALUE1}`
+          }
+          const statusText = document.getElementById('client-message-status-text2');
+          
+          document.getElementById('client-message-status-text1').textContent = 'Client: ';
+          HelperFunctions.showElement(document.getElementById('client-message-bubble'));
+          HelperFunctions.showElement(statusElem);
+          anime({
+            targets: testing,
+            index: testing.str.length,
+            easing: 'linear',
+            duration: 750,
+            update: function() {
+              statusText.textContent = testing.str.substr(0, testing.index);
+            },
+            complete: () => {
+              var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1), false, 0);
+              writeAnimation.finished.then(() => {
+                var messageToFollowerAnimations = HelperFunctions.logMessageFromLeaderToFollowers(true,HelperFunctions.getSetValueText(SET_VALUE1), false, 0, this.nodeATimerAnimation, this.nodeBTimerAnimation, this.nodeCTimerAnimation);
+                var finishedPromises = HelperFunctions.getFinishPromises(messageToFollowerAnimations);
+
+                Promise.all(finishedPromises).then(() => {
+                  // send confirmation of write to followers
+                  var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true,600, this.nodeATimerAnimation, this.nodeBTimerAnimation);
+                  finishedPromises = HelperFunctions.getFinishPromises(confWriteToFollowersAnimation);
+
+                  // and notify client as well
+                  HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
+
+                  // wait for confirmation to reach followers
+                  Promise.all(finishedPromises).then(() => {
+                    this.animationState = ANIMATION_STATE_VALUE1_COMMITTED;
+                    resolve({
+                      animationState: this.animationState,
+                      delay: 1000,
+                    });
+                  });
+                });
+              });
+            }
+          });
+        });
 				break;
 			}
-			case ANIMATION_STATE_CLIENT_WROTE_TO_ORIGINAL_LEADER: {
-				this.changeMainText('This starts a raft round to commit value to all nodes', () => {
-					var messageToFollowerAnimations = HelperFunctions.logMessageFromLeaderToFollowers(true,HelperFunctions.getSetValueText(SET_VALUE1), false, 0, this.nodeATimerAnimation, this.nodeBTimerAnimation, this.nodeCTimerAnimation);
-					var finishedPromises = HelperFunctions.getFinishPromises(messageToFollowerAnimations);
-
-					Promise.all(finishedPromises).then(() => {
-						HelperFunctions.setSVGText({
-							targetId: "node-c-main-text",
-							text:SET_VALUE1,
-							showElement: true});
-
-						// send confirmation of write to followers
-						var confWriteToFollowersAnimation = HelperFunctions.logMessageFromLeaderToFollowers(false, HelperFunctions.getSetValueText(SET_VALUE1), true,600, this.nodeATimerAnimation, this.nodeBTimerAnimation);
-						finishedPromises = HelperFunctions.getFinishPromises(confWriteToFollowersAnimation);
-
-						// and notify client as well
-						HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
-
-						// wait for confirmation to reach followers
-						Promise.all(finishedPromises).then(() => {
-							// commit value on followers
-							HelperFunctions.setSVGText({
-								targetId: "node-a-main-text",
-								text:SET_VALUE1,
-								showElement: true});
-							HelperFunctions.setSVGText({
-									targetId: "node-b-main-text",
-									text:SET_VALUE1,
-									showElement: true});
-
-							this.animationState = ANIMATION_STATE_VALUE1_COMMITED;
-							resolve({
-								animationState: this.animationState,
-								delay: 1000,
-							});
-						});
-					});
-				});
-				break;
-			}
-			case ANIMATION_STATE_VALUE1_COMMITED: {
+			case ANIMATION_STATE_VALUE1_COMMITTED: {
+        HelperFunctions.hideElement(document.getElementById('client-message-status'));
+        HelperFunctions.hideElement(document.getElementById('client-message-bubble'));
 				this.changeMainText('Now suppose the original leader gets network partitioned', () => {
 					// partition original leader
 					HelperFunctions.partitionNodeC();
@@ -216,8 +210,8 @@ export class LeaderLeaseAnimation extends Component {
 					// elect Node A as new leader candidate
 					var nodeA = document.getElementById('node-a-circle');
 					nodeA.classList.add('leader-candidate-node');
-					HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 1"});
-					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
+					HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 2"});
+					HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 2"});
 
 					this.animationState = ANIMATION_STATE_NEW_LEADER_CANDIDATE_ELECTED;
 					resolve({
@@ -230,8 +224,6 @@ export class LeaderLeaseAnimation extends Component {
 			case ANIMATION_STATE_NEW_LEADER_CANDIDATE_ELECTED: {
 				this.changeMainText('Client tries to write to new leader but update fails, as old leader can still serve reads', () => {
 						this.resumeTimers();
-
-						HelperFunctions.setSVGText({targetId: 'client-node-main-text', text: SET_VALUE2 });
 
 						var messageContrainerElement = document.getElementById('client-message');
 						var messageElement = document.getElementById('client-message-circle');
@@ -261,7 +253,7 @@ export class LeaderLeaseAnimation extends Component {
 						this.nodeCTimerAnimation.finished.then(() => {
 							this.nodeCTimerAnimation = null;
 
-							this.changeMainText("Original leader lease time has expired and it has stepped downed");
+							this.changeMainText("Original leader lease time has expired and it has stepped down");
 							var nodeC = document.getElementById('node-c-circle');
 							nodeC.classList.remove('leader-node');
 						});
@@ -329,16 +321,16 @@ export class LeaderLeaseAnimation extends Component {
 						var messageToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, HelperFunctions.getSetValueText(SET_VALUE2), false, 0, this.nodeBTimerAnimation, this.nodeATimerAnimation);
 
 						messageToBAnimation.finished.then(() => {
-							HelperFunctions.setSVGText({targetId: 'node-a-main-text', text: SET_VALUE2 });
 
 							// confirmation message back to B and the client
 							var confirmToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE, false, HelperFunctions.getSetValueText(SET_VALUE2), 0);
 							var confirmToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, HelperFunctions.getSetValueText(SET_VALUE2), true, 300, this.nodeBTimerAnimation);
 
 							Promise.all([confirmToClientAnimation.finished, confirmToBAnimation.finished]).then(() => {
-								HelperFunctions.setSVGText({targetId: 'node-b-main-text', text: SET_VALUE2 });
 
-								this.animationState = ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED;
+                this.animationState = Constants.ANIMATION_STATE_FINISHED;
+                this.stopTimers();
+                this.setState({ animationFinished: true });
 								resolve({
 									animationState: this.animationState,
 									delay: 100,
@@ -346,15 +338,6 @@ export class LeaderLeaseAnimation extends Component {
 							});
 						});
 					});
-				});
-				break;
-			}
-			case ANIMATION_STATE_POST_NEW_LEADER_VALUE2_COMMITTED: {
-				this.stopTimers();
-				this.animationState = Constants.ANIMATION_STATE_FINISHED;
-				resolve({
-					animationState: this.animationState,
-					delay: 100,
 				});
 				break;
 			}
