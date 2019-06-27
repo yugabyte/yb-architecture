@@ -2,8 +2,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import anime from 'animejs/lib/anime.es.js';
-import MainDiagram, { clientNodePositions } from './svg/MainDiagram';
-import {Constants} from './constants';
+import MainDiagram from './svg/MainDiagram';
+import { Constants } from './constants';
 
 var HelperFunctions = require('./HelperFunctions');
 
@@ -15,9 +15,6 @@ const ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS = "ANIMAT
 
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
-function setValueText(value) {
-	return "SET " + value;
-}
 
 export class RaftReadOperationAnimation extends Component {
 	constructor(props) {
@@ -46,6 +43,7 @@ export class RaftReadOperationAnimation extends Component {
 	}
 
 	onNextInternal(resolve,reject) {
+
 		switch(this.animationState) {
 			case ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -75,22 +73,22 @@ export class RaftReadOperationAnimation extends Component {
 			case ANIMATION_STATE_CLIENT_INTRODUCED: {				
 				this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
 				const statusElem = document.getElementById('client-message-status');
-				const testing = {
+				const content = {
 					index: 0,
 					str: 'Performing read..'
 				}
-				const statusText = document.getElementById('client-message-status-text2');
+				const statusTextLine2 = document.getElementById('client-message-status-text2');
 				
 				document.getElementById('client-message-status-text1').textContent = 'Client: ';
 				HelperFunctions.showElement(document.getElementById('client-message-bubble'));
 				HelperFunctions.showElement(statusElem);
 				anime({
-					targets: testing,
-					index: testing.str.length,
+					targets: content,
+					index: content.str.length,
 					easing: 'linear',
 					duration: 800,
 					update: function() {
-						statusText.textContent = testing.str.substr(0, testing.index);
+						statusTextLine2.textContent = content.str.substr(0, content.index);
 					},
 					complete: () => HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false)
 				});
@@ -104,36 +102,36 @@ export class RaftReadOperationAnimation extends Component {
 				// 'Leader contacts followers to obtain a consensus on current value'
 				HelperFunctions.hideElement(document.getElementById('client-message-status'));
 				HelperFunctions.hideElement(document.getElementById('client-message-bubble'));
-				var animation = HelperFunctions.logMessageFromLeaderToFollowers(true);
+				HelperFunctions.logMessageFromLeaderToFollowers(true);
 				const statusElem = document.getElementById('node-c-message-status');
 				HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
 				HelperFunctions.showElement(statusElem);
-				const leaderText1 = {
+				const contentLine1 = {
 					index: 7,
 					str: 'Leader: Contacting followers'
 				}
-				const leaderText2 = {
+				const contentLine2 = {
 					index: 0,
 					str: 'to obtain consensus value.'
 				}
-				const ltxt1 = document.getElementById('node-c-message-status-text1');
-				const ltxt2 = document.getElementById('node-c-message-status-text2')
+				const leaderTextLine1 = document.getElementById('node-c-message-status-text1');
+				const leaderTextLine2 = document.getElementById('node-c-message-status-text2')
 				anime({
-					targets: leaderText1,
-					index: leaderText1.str.length,
+					targets: contentLine1,
+					index: contentLine1.str.length,
 					easing: 'linear',
 					duration: 1000,
 					update: function() {
-						ltxt1.textContent = leaderText1.str.substr(0, leaderText1.index);
+						leaderTextLine1.textContent = contentLine1.str.substr(0, contentLine1.index);
 					},
 					complete: () => {
 						anime({
-							targets: leaderText2,
-							index: leaderText2.str.length,
+							targets: contentLine2,
+							index: contentLine2.str.length,
 							easing: 'linear',
 							duration: 1300,
 							update: function() {
-								ltxt2.textContent = leaderText2.str.substr(0, leaderText2.index);
+								leaderTextLine2.textContent = contentLine2.str.substr(0, contentLine2.index);
 							}
 						});
 					}

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
-import {Constants} from './constants';
+import { Constants } from './constants';
 
 var HelperFunctions = require('./HelperFunctions');
 
@@ -144,7 +144,7 @@ export class LeaderLeaseAnimation extends Component {
         var introduceClientAnimation = HelperFunctions.introduceClient(`Value: ${SET_VALUE1}`);
         introduceClientAnimation.finished.then(() => {
           const statusElem = document.getElementById('client-message-status');
-          const testing = {
+          const clientContent = {
             index: 0,
             str: `SET k = ${SET_VALUE1}`
           }
@@ -154,12 +154,12 @@ export class LeaderLeaseAnimation extends Component {
           HelperFunctions.showElement(document.getElementById('client-message-bubble'));
           HelperFunctions.showElement(statusElem);
           anime({
-            targets: testing,
-            index: testing.str.length,
+            targets: clientContent,
+            index: clientContent.str.length,
             easing: 'linear',
             duration: 750,
             update: function() {
-              statusText.textContent = testing.str.substr(0, testing.index);
+              statusText.textContent = clientContent.str.substr(0, clientContent.index);
             },
             complete: () => {
               var writeAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1), false, 0);

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
-import {Constants} from './constants';
+import { Constants } from './constants';
 
 var HelperFunctions = require('./HelperFunctions');
 
@@ -49,6 +49,7 @@ export class ReadOperationAnimation extends Component {
 			this.onNextInternal(resolve,reject);
 		});
 	}
+
 	onNextInternal(resolve,reject) {
 		switch(this.animationState) {
 			case ANIMATION_STATE_INITIAL: {
@@ -78,7 +79,7 @@ export class ReadOperationAnimation extends Component {
 			case ANIMATION_STATE_CLIENT_INTRODUCED: {
 				this.changeMainText('Client performs a set operation on leader, which starts a Raft round to replicate data to its followers',() => {
 					// client sends a message to the leader
-					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_C,false, setValueText(SET_VALUE1));
+					var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, setValueText(SET_VALUE1));
 
 					animation.finished.then(() => {
 						// leader sends log message to followers and receive an ack from both
@@ -109,7 +110,7 @@ export class ReadOperationAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_ENTRY_COMMITTED_BY_FOLLOWERS: {
-				this.changeMainText('Now imagine the Leader C gets network partitioned from its followers A and B',() => {
+				this.changeMainText('Now imagine the Leader C gets network partitioned from its followers A and B', () => {
 					// Partition Node C from followers
 					HelperFunctions.partitionNodeC();
 
@@ -141,7 +142,7 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.setSVGText({targetId: 'client-node-value', text: `Value: ${SET_VALUE2}` });
 
         const statusElem = document.getElementById('client-message-status');
-        const settingK = {
+        const clientContent = {
           index: 0,
           str: 'SET k = V2'
         }
@@ -151,12 +152,12 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.showElement(document.getElementById('client-message-bubble'));
         HelperFunctions.showElement(statusElem);
         anime({
-          targets: settingK,
-          index: settingK.str.length,
+          targets: clientContent,
+          index: clientContent.str.length,
           easing: 'linear',
           duration: 500,
           update: function() {
-            statusText.textContent = settingK.str.substr(0, settingK.index);
+            statusText.textContent = clientContent.str.substr(0, clientContent.index);
           },
           complete: () => {
             var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_A,false, setValueText(SET_VALUE2));
@@ -210,7 +211,7 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.hideElement(document.getElementById('node-a-message-bubble'));
 
         const statusElem = document.getElementById('client-message-status');
-        const settingK = {
+        const clientContent = {
           index: 0,
           str: 'Reading from C..'
         }
@@ -220,12 +221,12 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.showElement(document.getElementById('client-message-bubble'));
         HelperFunctions.showElement(statusElem);
         anime({
-          targets: settingK,
-          index: settingK.str.length,
+          targets: clientContent,
+          index: clientContent.str.length,
           easing: 'linear',
           duration: 750,
           update: function() {
-            statusText.textContent = settingK.str.substr(0, settingK.index);
+            statusText.textContent = clientContent.str.substr(0, clientContent.index);
           },
           complete: () => {
             var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE,Constants.NODE_C,false);
