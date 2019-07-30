@@ -424,13 +424,33 @@ export function partitionNodeC() {
 	showElement(nodeCPartition);
 }
 
-export function startMyLeaseTimer(forNode, duration, percent, disableAutoPlay){
+/**
+ * Calls `startLeaseTimer` for a leader node's 'My Lease' timer.
+ * @param {*} forNode 
+ * @param {Object} config 
+ * @param {number} config.duration Duration of animation in milliseconds
+ * @param {number} config.targetPercent Percentage of timer at end of animation
+ * @param {number} config.startPercent Percentage of timer at start of animation
+ * @param {boolean} config.disableAutoPlay Whether to set autoplay for animation
+ */
+export function startMyLeaseTimer(forNode, config){
 	var targetId = myLeaseTimerId(forNode);
-	return startLeaseTimer(targetId, duration, percent, disableAutoPlay);
+	const { duration, targetPercent, startPercent, disableAutoPlay } = config;
+	return startLeaseTimer(targetId, duration, targetPercent, startPercent, disableAutoPlay);
 }
-export function startLeaderLeaseTimer(forNode, duration, percent, disableAutoPlay){
+/**
+ * Calls `startLeaseTimer` for a follower node's 'Leader Lease' timer.
+ * @param {*} forNode 
+ * @param {Object} config 
+ * @param {number} config.duration Duration of animation in milliseconds
+ * @param {number} config.targetPercent Percentage of timer at end of animation
+ * @param {number} config.startPercent Percentage of timer at start of animation
+ * @param {boolean} config.disableAutoPlay Whether to set autoplay for animation
+ */
+export function startLeaderLeaseTimer(forNode, config){
 	var targetId = leaderLeaseTimerId(forNode);
-	return startLeaseTimer(targetId, duration, percent, disableAutoPlay);
+	const { duration, targetPercent, startPercent, disableAutoPlay } = config;
+	return startLeaseTimer(targetId, duration, targetPercent, startPercent, disableAutoPlay);
 }
 
 /**
@@ -438,18 +458,20 @@ export function startLeaderLeaseTimer(forNode, duration, percent, disableAutoPla
  * a specific `duration` until it reaches the specified `percent` limit.
  * @param {string} targetId String of html element id for this animation to run on
  * @param {number} duration Milliseconds until animation finishes
- * @param {number} percent  Target percentage to be remaining after animation is over, default is 0.
+ * @param {number} targetPercent  Target percentage to be remaining after animation is over, default is 0.
+ * @param {number} startPercentage From what percentage to start animation from
  * @param {boolean} disableAutoPlay Sets whether the animation should autoplay, most times should be true but
  * sometimes you need to disable it.
  */
-export function startLeaseTimer(targetId, duration, percent = 0, disableAutoPlay){
+export function startLeaseTimer(targetId, duration, targetPercent = 0, startPercent = 100, disableAutoPlay){
 	var timer = document.getElementById(targetId);
 	showElement(timer);
 	var innerRect = document.getElementById(targetId + '-inner');
-	const calculatedWidth = `${percent / 100.0 * 80}`;
+	const startWidth = startPercent / 100.0 * 80;
+	const targetWidth = targetPercent / 100.0 * 80;
 	var animation = anime({
 		targets: innerRect,
-		width: calculatedWidth,
+		width: [startWidth, targetWidth], // calculatedWidth,
 		easing: 'easeOutCubic',
 		duration: duration,
 		autoplay: !disableAutoPlay,
@@ -462,7 +484,7 @@ export function myLeaseTimerId(forNode) {
 }
 
 export function leaderLeaseTimerId(forNode) {
-	return constructTimerId("llease-rect", forNode);
+	return constructTimerId("llease-rect-", forNode);
 }
 
 function constructTimerId(prefix, forNode) {

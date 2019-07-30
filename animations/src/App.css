@@ -7,13 +7,33 @@
   color: #61dafb;
 }
 
+#home-link-container ul {
+	list-style: none;
+}
+#home-link-container li {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+#home-link-container a {
+	color: #0088ce;
+	text-decoration: none;
+}
+
+#home-link-container a:hover {
+	text-decoration: underline;
+}
+
+.write-link-container {
+	padding-left: 40px;
+}
+
 #main-text-sect {
 	max-width: 420px;
 	padding-left: 18px;
 }
 
 .animate-circle-stroke {
-	stroke-dasharray: 220;
+  stroke-dasharray: 220;
   stroke-dashoffset: 0;
   animation-iteration-count: 1;
   animation-name: rotate;
@@ -180,6 +200,7 @@
 	font-weight: bold;
 	font-size: 16px;
 	margin: 0 10px;
+	cursor: pointer;
 }
 .yb-btn:not([disabled]):hover {
 	background: #161C38;
@@ -187,6 +208,7 @@
 }
 .yb-btn:disabled {
 	background: grey;
+	cursor: not-allowed;
 }
 
 .yb-button-text {

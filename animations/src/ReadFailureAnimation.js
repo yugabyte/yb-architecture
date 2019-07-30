@@ -106,13 +106,30 @@ export class ReadOperationAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_UNSAFE_READ: {
-				this.changeMainText('Unsafe to read from raft leader without majority heartbeats. This sequence explains why.', () => {
-					this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
-					resolve({
-						animationState: this.animationState,
-						delay: 100,
-					});
-				});
+        this.changeMainText('');
+        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
+        const nodeCText = document.getElementById('node-c-message-text-alt')
+        const contentLine1 = {
+					index: 0,
+					str: 'Unsafe to read from raft leader without majority heartbeats. This sequence explains why.'
+        };
+
+        anime({
+          targets: contentLine1,
+          index: contentLine1.str.length,
+          easing: 'linear',
+          duration: 1500,
+          update: function() {
+            nodeCText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          },
+          complete: () => {
+            this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+            });
+          }
+        });
 				break;
 			}
 			case ANIMATION_STATE_NODE_C_PARTITIONED: {
@@ -244,6 +261,7 @@ export class ReadOperationAnimation extends Component {
                         document.getElementById('client-query-message-text2').innerHTML = '';
                         document.getElementById('client-query-message-text3').innerHTML = '';
                         HelperFunctions.hideElement(clientMessageBubble);
+                        HelperFunctions.hideElement(clientQueryMessage);
                         HelperFunctions.showElement(nodeAMessageBubble);
                         
                         // send commit confirmation back to B
@@ -469,6 +487,8 @@ export class ReadOperationAnimation extends Component {
       case ANIMATION_STATE_NODE_C_PARTITIONED: {
         let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.remove('leader-node');
+        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
+        document.getElementById('node-c-message-text-alt').innerText = '';
         nodeATermText.innerHTML = '';
         nodeBTermText.innerHTML = '';
         nodeCTermText.innerHTML = '';
@@ -494,14 +514,28 @@ export class ReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER: {
         HelperFunctions.hideElement(partitionWrap);
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerText = '';
-        this.changeMainText('Unsafe to read from raft leader without majority heartbeats. This sequence explains why.', () => {
-          this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
-          resolve({
-            animationState: this.animationState,
-            delay: 100,
-          });
+        const nodeCText = document.getElementById('node-c-message-text-alt')
+        nodeCText.innerText = '';
+        const contentLine1 = {
+					index: 0,
+					str: 'Unsafe to read from raft leader without majority heartbeats. This sequence explains why.'
+        };
+
+        anime({
+          targets: contentLine1,
+          index: contentLine1.str.length,
+          easing: 'linear',
+          duration: 1500,
+          update: function() {
+            nodeCText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          },
+          complete: () => {
+            this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+            });
+          }
         });
         break;
       }
