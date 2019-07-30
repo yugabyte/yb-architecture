@@ -18,6 +18,13 @@ const ANIMATION_STATE_CLIENT_FINISH_OPERATION = 'ANIMATION_STATE_CLIENT_FINISH_O
 
 const SET_VALUE1="V1";
 const SET_VALUE2="V2";
+const warningSVG = (height = '550.45', width = '627.77') => (
+		`<svg id="Layer_3" xmlns="http://www.w3.org/2000/svg" height=${height}" width="${width}" version="1.0" viewBox="0 0 627.769 550.45">
+			<path id="path2231" fill="#ea0000" d="m614.57 504.94l-279.4-483.94c-4.38-7.588-12.47-12.262-21.23-12.262s-16.85 4.674-21.23 12.258l-279.41 483.94c-4.375 7.58-4.375 16.93 0.003 24.52 4.379 7.58 12.472 12.25 21.23 12.25h558.81c8.76 0 16.86-4.67 21.23-12.25 4.38-7.59 4.38-16.94 0-24.52z"/>
+			<polygon id="polygon2233" points="93.977 482.88 533.9 482.88 313.94 101.89" fill="#fff"/>
+			<path id="path2235" d="m291.87 343.36c1.21 11.49 3.21 20.04 6.02 25.66 2.81 5.63 7.82 8.43 15.04 8.43h2.01c7.22 0 12.24-2.8 15.04-8.43 2.81-5.62 4.82-14.17 6.02-25.66l6.42-88.75c1.21-17.3 1.81-29.71 1.81-37.25 0-10.25-2.91-18.25-8.73-23.99-5.53-5.46-13.38-8.59-21.56-8.59s-16.04 3.13-21.57 8.59c-5.81 5.74-8.72 13.74-8.72 23.99 0 7.54 0.6 19.95 1.8 37.25l6.42 88.75z"/>
+			<circle id="circle2237" cy="430.79" cx="313.94" r="30.747"/>
+		</svg>`);
 
 export class RaftReadOperationAnimation extends Component {
 	constructor(props) {
@@ -108,23 +115,57 @@ export class RaftReadOperationAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_LEADER_ELECTION: {
-				this.changeMainText('Node C is the current raft leader,<br /> denoted by black border.', () => {
-          nodeAExtraText.innerHTML = '';
-          nodeBExtraText.innerHTML = '';
-          nodeCExtraText.innerHTML = '';
-          document.getElementById('node-c-circle').classList.add('leader-node');
-          nodeATermText.innerHTML = 'Term: 1';
-          nodeBTermText.innerHTML = 'Term: 1';
-          nodeCTermText.innerHTML = 'Term: 1';
-        });
-        this.animationState = ANIMATION_STATE_NODE_DATA;
-        resolve({
-          animationState: ANIMATION_STATE_NODE_DATA,
-          delay: 100,
+        this.changeMainText('');
+        HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
+        HelperFunctions.showElement(document.getElementById('node-c-message-status'));
+        const contentLine1 = {
+          index: 0,
+          str: 'C is the current raft leader,'
+        };
+        const contentLine2 = {
+          index: 0,
+          str: 'denoted by a black border.'
+        };
+        const statusTextLine1 = document.getElementById('node-c-message-status-text1');
+        const statusTextLine2 = document.getElementById('node-c-message-status-text2');
+        anime({
+          targets: contentLine1,
+          index: contentLine1.str.length,
+          easing: 'linear',
+          duration: 600,
+          update: function() {
+            statusTextLine1.innerHTML = contentLine1.str.substr(0, contentLine1.index);
+          },
+          complete: () => {
+            anime({
+              targets: contentLine2,
+              index: contentLine2.str.length,
+              easing: 'linear',
+              duration: 900,
+              update: function() {
+                statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
+              },
+              complete: () => {
+                document.getElementById('node-c-circle').classList.add('leader-node');
+                nodeATermText.innerHTML = 'Term: 1';
+                nodeBTermText.innerHTML = 'Term: 1';
+                nodeCTermText.innerHTML = 'Term: 1';
+                this.animationState = ANIMATION_STATE_NODE_DATA;
+                resolve({
+                  animationState: ANIMATION_STATE_NODE_DATA,
+                  delay: 100,
+                });
+              }
+            });
+          }
         });
         break;
       }
       case ANIMATION_STATE_NODE_DATA: {
+        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
+        HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
+        document.getElementById('node-c-message-status-text1').innerHTML = '';
+        document.getElementById('node-c-message-status-text2').innerHTML = '';
 				this.changeMainText('Assume all nodes have data: <br />(key,value) = (k, V1)', () => {
           nodeAExtraText.innerHTML = '(k, V1)';
           nodeBExtraText.innerHTML = '(k, V1)';
@@ -300,7 +341,8 @@ export class RaftReadOperationAnimation extends Component {
       case ANIMATION_STATE_CLIENT_FINISH_OPERATION: {
 				HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
         HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
-        this.changeMainText('<img src="./svg/warning-sign.svg" width="40"/> If nodes are in different regions, obtaining majority heartbeat is expensive. Query has high latency.');
+        
+        this.changeMainText(warningSVG(26, 28) + ' If nodes are in different regions, obtaining majority heartbeat is expensive. Query has high latency.');
         this.animationState = Constants.ANIMATION_STATE_FINISHED;
         this.setState({ animationFinished: true });
         resolve({
@@ -386,9 +428,16 @@ export class RaftReadOperationAnimation extends Component {
       case ANIMATION_STATE_NODE_DATA: {
         // Undo phase
         document.getElementById('node-c-circle').classList.remove('leader-node');
+        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
+        HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
+        document.getElementById('node-c-message-status-text1').innerHTML = '';
+        document.getElementById('node-c-message-status-text2').innerHTML = '';
         nodeATermText.innerHTML = '';
         nodeBTermText.innerHTML = '';
         nodeCTermText.innerHTML = '';
+        nodeAExtraText.innerHTML = '';
+        nodeBExtraText.innerHTML = '';
+        nodeCExtraText.innerHTML = '';
 
         // Redo previous phase
         this.changeMainText('Nodes would have performed leader election..', () => {
@@ -405,25 +454,59 @@ export class RaftReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_CLIENT_INTRODUCED: {
         // Undo phase
+        this.changeMainText('');
         document.getElementById('node-c-circle').classList.remove('leader-node');
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
         HelperFunctions.hideElement(nodeCExtraHighlight);
 
         // Redo previous phase
-        nodeAExtraText.innerHTML = '';
-        nodeBExtraText.innerHTML = '';
-        nodeCExtraText.innerHTML = '';
-				this.changeMainText('Node C is the current raft leader,<br /> denoted by black border.', () => {
-          document.getElementById('node-c-circle').classList.add('leader-node');
-          nodeATermText.innerHTML = 'Term: 1';
-          nodeBTermText.innerHTML = 'Term: 1';
-          nodeCTermText.innerHTML = 'Term: 1';
-        });
-        this.animationState = ANIMATION_STATE_NODE_DATA;
-        resolve({
-          animationState: ANIMATION_STATE_NODE_DATA,
-          delay: 100,
+        nodeAExtraText.innerHTML = 'Voted for C';
+        nodeBExtraText.innerHTML = 'Voted for C';
+        nodeCExtraText.innerHTML = 'Voted for C';
+        
+        HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
+        HelperFunctions.showElement(document.getElementById('node-c-message-status'));
+        const contentLine1 = {
+          index: 0,
+          str: 'C is the current raft leader,'
+        };
+        const contentLine2 = {
+          index: 0,
+          str: 'denoted by the black border.'
+        };
+        const statusTextLine1 = document.getElementById('node-c-message-status-text1');
+        const statusTextLine2 = document.getElementById('node-c-message-status-text2');
+        anime({
+          targets: contentLine1,
+          index: contentLine1.str.length,
+          easing: 'linear',
+          duration: 600,
+          update: function() {
+            statusTextLine1.innerHTML = contentLine1.str.substr(0, contentLine1.index);
+          },
+          complete: () => {
+            anime({
+              targets: contentLine2,
+              index: contentLine2.str.length,
+              easing: 'linear',
+              duration: 900,
+              update: function() {
+                statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
+              },
+              complete: () => {
+                document.getElementById('node-c-circle').classList.add('leader-node');
+                nodeATermText.innerHTML = 'Term: 1';
+                nodeBTermText.innerHTML = 'Term: 1';
+                nodeCTermText.innerHTML = 'Term: 1';
+                this.animationState = ANIMATION_STATE_NODE_DATA;
+                resolve({
+                  animationState: ANIMATION_STATE_NODE_DATA,
+                  delay: 100,
+                });
+              }
+            });
+          }
         });
         break;
       }

@@ -426,13 +426,13 @@ export function partitionNodeC() {
 	showElement(nodeCPartition);
 }
 
-export function startMyLeaseTimer(forNode, duration, percent){
+export function startMyLeaseTimer(forNode, duration, percent, disableAutoPlay){
 	var targetId = myLeaseTimerId(forNode);
-	return startLeaseTimer(targetId, duration, percent);
+	return startLeaseTimer(targetId, duration, percent, disableAutoPlay);
 }
-export function startLeaderLeaseTimer(forNode, duration, percent){
+export function startLeaderLeaseTimer(forNode, duration, percent, disableAutoPlay){
 	var targetId = leaderLeaseTimerId(forNode);
-	return startLeaseTimer(targetId, duration, percent);
+	return startLeaseTimer(targetId, duration, percent, disableAutoPlay);
 }
 
 /**
@@ -441,8 +441,10 @@ export function startLeaderLeaseTimer(forNode, duration, percent){
  * @param {string} targetId String of html element id for this animation to run on
  * @param {number} duration Milliseconds until animation finishes
  * @param {number} percent  Target percentage to be remaining after animation is over, default is 0.
+ * @param {boolean} disableAutoPlay Sets whether the animation should autoplay, most times should be true but
+ * sometimes you need to disable it.
  */
-export function startLeaseTimer(targetId, duration, percent = 0){
+export function startLeaseTimer(targetId, duration, percent = 0, disableAutoPlay){
 	var timer = document.getElementById(targetId);
 	showElement(timer);
 	var innerRect = document.getElementById(targetId + '-inner');
@@ -452,6 +454,7 @@ export function startLeaseTimer(targetId, duration, percent = 0){
 		width: calculatedWidth,
 		easing: 'easeOutCubic',
 		duration: duration,
+		autoplay: !disableAutoPlay,
 	});
 	return animation;
 }
