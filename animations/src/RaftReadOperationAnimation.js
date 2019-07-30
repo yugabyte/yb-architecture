@@ -4,7 +4,6 @@ import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
 import { Constants } from './constants';
-import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 
 var HelperFunctions = require('./HelperFunctions');
 
@@ -17,7 +16,6 @@ const ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS = "ANIMAT
 const ANIMATION_STATE_CLIENT_FINISH_OPERATION = 'ANIMATION_STATE_CLIENT_FINISH_OPERATION';
 
 const SET_VALUE1="V1";
-const SET_VALUE2="V2";
 const warningSVG = (height = '550.45', width = '627.77') => (
 		`<svg id="Layer_3" xmlns="http://www.w3.org/2000/svg" height=${height}" width="${width}" version="1.0" viewBox="0 0 627.769 550.45">
 			<path id="path2231" fill="#ea0000" d="m614.57 504.94l-279.4-483.94c-4.38-7.588-12.47-12.262-21.23-12.262s-16.85 4.674-21.23 12.258l-279.41 483.94c-4.375 7.58-4.375 16.93 0.003 24.52 4.379 7.58 12.472 12.25 21.23 12.25h558.81c8.76 0 16.86-4.67 21.23-12.25 4.38-7.59 4.38-16.94 0-24.52z"/>

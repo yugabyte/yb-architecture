@@ -34,7 +34,7 @@ class AnimationRunner extends Component {
 			console.log('Result: ' + JSON.stringify(result));
 			this.setState({ animationPlaying: false });
 			setTimeout(() => {
-				if (this.runMode == RUN_MODE_CONTINUOUS ) {
+				if (this.runMode === RUN_MODE_CONTINUOUS ) {
 					this.currentAnimation.resume();
 					this.next();
 				} else if (!result.asyncAnimation) {
@@ -53,7 +53,7 @@ class AnimationRunner extends Component {
 			console.log('Undo: ' + JSON.stringify(result));
 			this.setState({ animationPlaying: false });
 			setTimeout(() => {
-				if (this.runMode == RUN_MODE_CONTINUOUS ) {
+				if (this.runMode === RUN_MODE_CONTINUOUS ) {
 					this.currentAnimation.resume();
 					this.next();
 				} else {

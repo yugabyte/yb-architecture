@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
 
-import Timer from './svg/Timer';
 import HorizontalTimer from './svg/HorizontalTimer';
 
 
 class Test extends Component {
 
-	constructor(props) {
-		super(props);
-		// this.timer = React.createRef();
-	}
+	// constructor(props) {
+	// 	super(props);
+	// 	// this.timer = React.createRef();
+	// }
 	render() {
 		return (
 			<div>
