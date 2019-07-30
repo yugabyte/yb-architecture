@@ -135,7 +135,7 @@ export class LeaderLeaseAnimation extends Component {
 				break;
       }
       case ANIMATION_STATE_LEADER_READS_PROTOCOL: {
-        this.changeMainText('Using leader leases to safely perform reads from the leader..', () => {
+        this.changeMainText('This sequence shows how to safely perform reads from the leader using leader leases.', () => {
           this.animationState = ANIMATION_STATE_START_LEADER_LEASE;
           resolve({
             animationState: this.animationState,
@@ -178,13 +178,12 @@ export class LeaderLeaseAnimation extends Component {
               },
               complete: () => {
                 this.timersAreActive = true;
-                if (this.nodeCTimerAnimation) {
-                  HelperFunctions.showElement(document.getElementById('mlease-rect-node-c'));
-                  this.nodeCTimerAnimation.restart();
-                } else {
-                  this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_INITIAL_DURATION, 90, true);
-                  this.nodeCTimerAnimation.play();
-                }
+                this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+                  duration: ORIGINAL_LEADER_INITIAL_DURATION,
+                  targetPercent: 90,
+                  disableAutoPlay: true,
+                });
+                this.nodeCTimerAnimation.play();
                 this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
                 resolve({
                   animationState: this.animationState,
@@ -233,7 +232,11 @@ export class LeaderLeaseAnimation extends Component {
           },
         });
 
-        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, LEADER_REPLICATION_DURATION, 60);
+        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+          duration: LEADER_REPLICATION_DURATION,
+          targetPercent: 60,
+          startPercent: 90,
+        });
 
         var leaseToB = document.getElementById('node-c-lease-to-node-b');
         var nodeBLeaseAnimation = anime({
@@ -251,8 +254,14 @@ export class LeaderLeaseAnimation extends Component {
           },
         });
         Promise.all([nodeCTextAnimation.finished, nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished, this.nodeCTimerAnimation]).then(() => {
-          this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, ORIGINAL_LEADER_INITIAL_DURATION, 85);
-          this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, ORIGINAL_LEADER_INITIAL_DURATION, 90);
+          this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+            duration: ORIGINAL_LEADER_INITIAL_DURATION,
+            targetPercent: 85
+          });
+          this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+            duration: ORIGINAL_LEADER_INITIAL_DURATION,
+            targetPercent: 90
+          });
 
           this.animationState = ANIMATION_STATE_LEADER_LEASE_DURATION;
           resolve({
@@ -454,9 +463,20 @@ export class LeaderLeaseAnimation extends Component {
           index: 0,
           str: 'Leader Lease of C will run out\nfirst [since it started first]. \nC now steps down as leader.'
         };
-        this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, 6000, 25);
-        this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, 6000, 30);
-        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, 6000);
+        this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+          duration: 6000,
+          startPercent: 85,
+          targetPercent: 35,
+         });
+        this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+          duration: 6000,
+          startPercent: 90,
+          targetPercent: 40,
+         });
+        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+          duration: 6000,
+          startPercent: 60,
+        });
 
         anime({
           targets: content,
@@ -500,7 +520,17 @@ export class LeaderLeaseAnimation extends Component {
             nodeAMessage.textContent = content.str.substr(0, content.index);
           },
           complete: () => {
-            this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, 2000);
+            this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+              duration: 2500,
+              startPercent: 35,
+            });
+            this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+              duration: 2500,
+              targetPercent: 10,
+              startPercent: 40,
+              disableAutoPlay: true
+            });
+            this.nodeBTimerAnimation.play();
             this.nodeATimerAnimation.finished.then(() => {
               var nodeA = document.getElementById('node-a-circle');
               HelperFunctions.showElement(document.getElementById('node-a-timer-highlight'));
@@ -511,7 +541,10 @@ export class LeaderLeaseAnimation extends Component {
               HelperFunctions.hideElement(document.getElementById(HelperFunctions.leaderLeaseTimerId(Constants.NODE_A)));
     
               // and start its my lease timer
-              this.nodeATimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_A, 5000, 50);
+              this.nodeATimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_A, {
+                duration: 3000,
+                targetPercent: 60,
+               });
     
               // then send leader lease message to B
               var leaseToB = document.getElementById('node-a-lease-to-node-b');
@@ -528,11 +561,15 @@ export class LeaderLeaseAnimation extends Component {
                   HelperFunctions.hideElement(leaseToB);
                   leaseToB.style.transform = 'none';
     
-                  this.nodeBTimerAnimation.restart();
+                  this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+                    duration: 2500,
+                    targetPercent: 80,
+                  });
                   this.animationState = ANIMATION_STATE_NEW_LEADER_SENT_LEASES;
                   resolve({
                     animationState: this.animationState,
                     delay: 100,
+                    asyncAnimation: true
                   });
                 },
               });
@@ -564,7 +601,8 @@ export class LeaderLeaseAnimation extends Component {
           },
           complete: () => {
             // initiate a raft round
-            
+            this.nodeATimerAnimation.restart();
+   
             // client message to A
             var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');
 
@@ -577,9 +615,14 @@ export class LeaderLeaseAnimation extends Component {
                 nodeBExtraText.innerHTML = '(k, V2)';
                 HelperFunctions.hideElement(nodeAExtraText2);
                 HelperFunctions.showElement(nodeAExtraHighlight);
+                let newBTimer = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+                  duration: 2500,
+                  startPercent: 100,
+                  targetPercent: 80
+                });
                 // confirmation message back to B and the client
                 var confirmToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE, false, false, '', true);
-                var confirmToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 300, this.nodeBTimerAnimation);
+                var confirmToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 300, newBTimer);
 
                 Promise.all([confirmToClientAnimation.finished, confirmToBAnimation.finished]).then(() => {
                   HelperFunctions.hideElement(nodeBExtraText2);
@@ -743,7 +786,7 @@ export class LeaderLeaseAnimation extends Component {
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-c'));
 
         // Redo phase
-        this.changeMainText('Using leader leases to safely perform reads from the leader..', () => {
+        this.changeMainText('This sequence shows how to safely perform reads from the leader using leader leases.', () => {
           this.animationState = ANIMATION_STATE_START_LEADER_LEASE;
           resolve({
             animationState: this.animationState,
@@ -754,9 +797,10 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_LEADER_LEASE_DURATION: {
         // Undo phase
-        HelperFunctions.hideElement(document.getElementById('llease-rectnode-a'));
-        HelperFunctions.hideElement(document.getElementById('llease-rectnode-b'));
+        HelperFunctions.hideElement(document.getElementById('llease-rect-node-a'));
+        HelperFunctions.hideElement(document.getElementById('llease-rect-node-b'));;
         HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
+        HelperFunctions.hideElement(document.getElementById('mlease-rect-node-c'));
         document.getElementById('node-c-message-text-alt').innerHTML = '';
 
         // Redo phase
@@ -795,8 +839,10 @@ export class LeaderLeaseAnimation extends Component {
               },
               complete: () => {
                 this.timersAreActive = true;
-                this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, ORIGINAL_LEADER_INITIAL_DURATION, 90, true);
-                this.nodeCTimerAnimation.play();
+                HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+                  duration: ORIGINAL_LEADER_INITIAL_DURATION,
+                  targetPercent: 90,
+                });
                 this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
                 resolve({
                   animationState: this.animationState,
@@ -815,6 +861,9 @@ export class LeaderLeaseAnimation extends Component {
         HelperFunctions.hideElement(nodeCMessageBubble);
         HelperFunctions.hideElement(nodeCMessageStatus);
         HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
+        HelperFunctions.hideElement(document.getElementById('llease-rect-node-a'));
+        HelperFunctions.hideElement(document.getElementById('llease-rect-node-b'));
+
         const textAlt = document.getElementById('node-c-message-text-alt');
         var leaseToA = document.getElementById('node-c-lease-to-node-a');
         const content = {
@@ -846,7 +895,11 @@ export class LeaderLeaseAnimation extends Component {
           },
         });
 
-        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, 5000, 60);
+        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+          duration: 5000,
+          targetPercent: 60,
+          startPercent: 90,
+        });
         this.nodeCTimerAnimation.restart();
         var leaseToB = document.getElementById('node-c-lease-to-node-b');
         var nodeBLeaseAnimation = anime({
@@ -864,8 +917,14 @@ export class LeaderLeaseAnimation extends Component {
           },
         });
         Promise.all([nodeCTextAnimation.finished, nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished, this.nodeCTimerAnimation]).then(() => {
-          this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, 3000, 85);
-          this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, 3000, 90);
+          this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+            duration: 3000,
+            targetPercent: 85
+          });
+          this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+            duration: 3000,
+            targetPercent: 90
+          });
           console.log(this.nodeBTimerAnimation);
           this.nodeATimerAnimation.restart();
           this.nodeBTimerAnimation.restart();
@@ -1101,9 +1160,15 @@ export class LeaderLeaseAnimation extends Component {
           str: 'Leader Lease of C will run out\nfirst [since it started first]. \nC now steps down as leader.'
         };
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-a'));
-        this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, 6000, 25);
-        this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, 6000, 30);
-        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, 6000);
+        this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+          duration: 6000,
+          targetPercent: 35
+        });
+        this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+          duration: 6000,
+          targetPercent: 40
+        });
+        this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, { duration: 6000 });
 
         anime({
           targets: content,
@@ -1155,7 +1220,15 @@ export class LeaderLeaseAnimation extends Component {
             nodeAMessage.textContent = content.str.substr(0, content.index);
           },
           complete: () => {
-            this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, 10000);
+            this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
+              duration: 2500,
+              startPercent: 35,
+            });
+            this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+              duration: 2500,
+              targetPercent: 10,
+              startPercent: 40,
+            });
             this.nodeATimerAnimation.finished.then(() => {
               nodeA.classList.remove('leader-candidate-node');
               nodeA.classList.add('leader-node');
@@ -1165,7 +1238,10 @@ export class LeaderLeaseAnimation extends Component {
               HelperFunctions.hideElement(document.getElementById(HelperFunctions.leaderLeaseTimerId(Constants.NODE_A)));
 
               // and start its my lease timer
-              this.nodeATimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_A, 5000, 50);
+              this.nodeATimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_A, {
+                duration: 3000,
+                targetPercent: 60
+              });
 
               // then send leader lease message to B
               var leaseToB = document.getElementById('node-a-lease-to-node-b');
@@ -1182,11 +1258,15 @@ export class LeaderLeaseAnimation extends Component {
                   HelperFunctions.hideElement(leaseToB);
                   leaseToB.style.transform = 'none';
 
-                  this.nodeBTimerAnimation.restart();
+                  this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
+                    duration: 2500,
+                    targetPercent: 80
+                  });
                   this.animationState = ANIMATION_STATE_NEW_LEADER_SENT_LEASES;
                   resolve({
                     animationState: this.animationState,
                     delay: 100,
+                    asyncAnimation: true
                   });
                 },
               });
@@ -1241,7 +1321,6 @@ export class LeaderLeaseAnimation extends Component {
                   nodeBExtraText.innerHTML = '(k, V2)';
                   HelperFunctions.showElement(nodeBExtraHighlight);
                   this.animationState = ANIMATION_STATE_LEADER_LEASE_CONCLUSION;
-                  this.stopTimers();
                   resolve({
                     animationState: this.animationState,
                     delay: 100,
