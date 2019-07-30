@@ -10,6 +10,7 @@ class AnimationRunner extends Component {
 	constructor(props) {
 		super(props);
 		this.onPlayClicked = this.onPlayClicked.bind(this);
+		this.onPreviousClicked = this.onPreviousClicked.bind(this);
 		this.onRestartClicked = this.onRestartClicked.bind(this);
 
 		this.state = {
@@ -29,8 +30,27 @@ class AnimationRunner extends Component {
 		this.setState({ animationPlaying: true });
 
 		var promise = this.currentAnimation.onNext();
-		promise.then( result => {
+		promise.then(result => {
 			console.log('Result: ' + JSON.stringify(result));
+			this.setState({ animationPlaying: false });
+			setTimeout(() => {
+				if (this.runMode == RUN_MODE_CONTINUOUS ) {
+					this.currentAnimation.resume();
+					this.next();
+				} else if (!result.asyncAnimation) {
+					this.currentAnimation.pause();
+				}
+			},
+			(result.delay?result.delay:Constants.DEFAULT_DELAY));
+		});
+	}
+
+	previous() {
+		this.setState({ animationPlaying: true });
+
+		var promise = this.currentAnimation.onPrevious();
+		promise.then( result => {
+			console.log('Undo: ' + JSON.stringify(result));
 			this.setState({ animationPlaying: false });
 			setTimeout(() => {
 				if (this.runMode == RUN_MODE_CONTINUOUS ) {
@@ -50,6 +70,9 @@ class AnimationRunner extends Component {
 	onRestartClicked() {
 		this.restart();
 	}
+	onPreviousClicked() {
+		this.previous();
+	}
 
 	restart() {
 		window.location.reload();
@@ -62,14 +85,24 @@ class AnimationRunner extends Component {
 		const Animation = this.props.animationToRun;
 		const disableNext = this.state.animationPlaying || 
 			(this.currentAnimation && this.currentAnimation.state.animationFinished);
+		const disablePrevious = this.state.animationPlaying ||
+			(this.currentAnimation && !this.currentAnimation.state.previousEnabled) ||
+			(this.currentAnimation && this.currentAnimation.animationState === Constants.ANIMATION_STATE_INITIAL);
+		const isAnimationFinished = this.currentAnimation && this.currentAnimation.state.animationFinished;
 		return(
 			<div className="animation-runner">
 				<div id="main-text-sect"></div>
 				<Animation ref={n => this.currentAnimation = n}></Animation>
 				<div className="control-btns">
+					<button id="animation-ctrl-previous" className="yb-btn" disabled={disablePrevious} onClick={this.onPreviousClicked}>
+						<i className="fas fa-undo" aria-hidden="true"></i>
+						<span className="yb-button-text">Previous</span>
+					</button>
 					<button id="animation-ctrl-next" className="yb-btn" disabled={disableNext} onClick={this.onPlayClicked}>
 						<i className="fas fa-play" aria-hidden="true"></i>
-						<span className="yb-button-text">Next</span>
+						<span className="yb-button-text">
+							{isAnimationFinished ? 'End' : 'Next' }
+						</span>
 					</button>
 					<button id="animation-ctrl-restart" className="yb-btn" onClick={this.onRestartClicked}>
 						<i className="fas fa-fast-backward" aria-hidden="true"></i>

@@ -194,7 +194,7 @@ class RaftWriteAnimation extends Component {
 				var introClientAnimation = HelperFunctions.introduceClient();
 
 				introClientAnimation.finished.then(() => {
-					var messageToCAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, HelperFunctions.getSetValueText(SET_VALUE1));
+					var messageToCAnimation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false, false, HelperFunctions.getSetValueText(SET_VALUE1));
 					messageToCAnimation.finished.then(() => {
 						this.animationState = AnimationState.LOG_REPLICATION_MESSAGE_RECEIVED_BY_LEADER;
 						resolve({
