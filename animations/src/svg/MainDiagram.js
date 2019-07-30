@@ -46,7 +46,7 @@ export const nodeAPositions = {
 	},
 	leaseTimer: {
 		x: nodeABaseXPos - 48,
-		y: nodeABaseYPos + 108
+		y: nodeABaseYPos + 95
 	}
 }
 
@@ -159,11 +159,12 @@ class MainDiagram extends Component {
 					<text id="client-message-text" x={clientX - 18} y={clientY + 24}>
 					</text>
 				</g>
+				<image href="./warning-sign.jpg" width="200" x="0" y="0" />
 				
 				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBX + 24} cy={nodeBY + 12} />
 
 				<circle id="node-a-message-to-b" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
-        <circle id="node-a-message-to-c" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
+        		<circle id="node-a-message-to-c" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToB.x} cy={nodeAPositions.messageToB.y} />
 				<circle id="node-a-message-to-client" className="node-small-circle visibility-hidden" cx={nodeAPositions.messageToClient.x} cy={nodeAPositions.messageToClient.y} />
 
 				{/* node C */}
@@ -175,23 +176,23 @@ class MainDiagram extends Component {
 					<text id="node-c-main-text" x={nodeCX + 30} y={nodeCY + 6} className="node-text" fill="black">
 						Node C
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 118}
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 93}
 					label={"My Lease"}/>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 118}
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_C)} x={nodeCX - 48} y={nodeCY + 93}
 					label={"Leader Lease"}/>
 				</g>
 
-			<g>
-				<rect id="node-c-text-highlight" className="visibility-hidden"
-					x={nodeCX + 5} y={nodeCY + 62} width="55" height="24" fill="yellow"></rect>
-				<text id="node-c-term-text-rect" x={nodeCX + 10} y={nodeCY + 40} fill="black" className="visibility-hidden">
-					<tspan id="node-c-term-text" x={nodeCX + 10} dy="1.2em"></tspan>
-					<tspan id="node-c-extra-text" className="node-extra-text" x={nodeCX + 10} dy="1.2em"></tspan>
-					<tspan id="node-c-extra-text2" className="node-extra-text2" dx="0.5em" ></tspan>
-				</text>
-			</g>
+				<g>
+					<rect id="node-c-text-highlight" className="visibility-hidden"
+						x={nodeCX + 5} y={nodeCY + 62} width="55" height="24" fill="yellow"></rect>
+					<text id="node-c-term-text-rect" x={nodeCX + 10} y={nodeCY + 40} fill="black" className="visibility-hidden">
+						<tspan id="node-c-term-text" x={nodeCX + 10} dy="1.2em"></tspan>
+						<tspan id="node-c-extra-text" className="node-extra-text" x={nodeCX + 10} dy="1.2em"></tspan>
+						<tspan id="node-c-extra-text2" className="node-extra-text2" dx="0.5em" ></tspan>
+					</text>
+				</g>
 
-        {/* Node C bubble text area */}
+        		{/* Node C bubble text area */}
 				<foreignObject x={nodeCX - 15} y={nodeCY - 174} width="235" height="80">
 					<div id="node-c-message-text-alt"></div>
 				</foreignObject>
@@ -215,8 +216,10 @@ class MainDiagram extends Component {
 					<text id="node-a-main-text" x={nodeAX} y={nodeAY + 6} className="node-text">
 						Node A
 					</text>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y + 12} label={"My Lease"}/>
-					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y + 12} label={"Leader Lease"}/>
+					<rect id="node-a-timer-highlight" className="visibility-hidden"
+            			x={nodeAPositions.leaseTimer.x + 18} y={nodeAPositions.leaseTimer.y - 12} width="75" height="20" fill="yellow"></rect>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y} label={"My Lease"}/>
+					<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_A)} x={nodeAPositions.leaseTimer.x - 24} y={nodeAPositions.leaseTimer.y} label={"Leader Lease"}/>
 				</g>
 
         {/* text */}
@@ -224,7 +227,7 @@ class MainDiagram extends Component {
           <rect id="node-a-term-highlight" className="visibility-hidden"
             x={nodeAX - 30} y={nodeAY + 41} width="63" height="24" fill="yellow"></rect>
           <rect id="node-a-text-highlight" className="visibility-hidden"
-						x={nodeAX - 30} y={nodeAY + 62} width="55" height="24" fill="yellow"></rect>
+			x={nodeAX - 30} y={nodeAY + 62} width="55" height="24" fill="yellow"></rect>
           <text id="node-a-term-text-rect" x={nodeAX} y={nodeAY + 40} fill="black" className="visibility-hidden">
             <tspan id="node-a-term-text" x={nodeAX - 24} dy="1.2em"></tspan>
             <tspan id="node-a-extra-text" className="node-extra-text" x={nodeAX - 24} dy="1.2em"></tspan>
@@ -243,8 +246,8 @@ class MainDiagram extends Component {
 			<text id="node-b-main-text" x={nodeBX + 24} y={nodeBY + 6} className="node-text">
 				Node B
 			</text>
-			<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 115} label={"My Lease"}/>
-			<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 115} label="Leader Lease"/>
+			<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.myLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 95} label={"My Lease"}/>
+			<HorizontalTimer className="visibility-hidden" uid={HelperFunctions.leaderLeaseTimerId(Constants.NODE_B)} x={nodeBX - 54} y={nodeBY + 95} label="Leader Lease"/>
 		</g>
 
         {/* text */}
@@ -280,8 +283,8 @@ class MainDiagram extends Component {
 			<text id="client-node-value" x={clientNodeXPos + 40} y={clientNodeYPos + 9}></text>
 			<text id="client-node-value-alt" x={clientNodeXPos + 40} y={clientNodeYPos + 9} className="visibility-hidden">
 				<tspan fill="red" x={clientNodeXPos + 40} fontSize="1.5em">×</tspan>
-				<tspan dx="4px">Value: V1</tspan>
-				<tspan fill="red" x={clientNodeXPos + 40} dy="1.2em">Expected value = V2</tspan>
+				<tspan id="client-node-value-error-header" dx="4px"></tspan>
+				<tspan id="client-node-value-error-subtitle" fill="red" x={clientNodeXPos + 40} dy="1.2em"></tspan>
 			</text>
 		</g>
 

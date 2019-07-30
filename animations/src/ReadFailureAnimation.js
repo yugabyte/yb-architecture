@@ -305,6 +305,7 @@ export class ReadOperationAnimation extends Component {
         document.getElementById('client-query-message-text3').innerHTML = ''
         HelperFunctions.hideElement(clientMessageBubble);
         HelperFunctions.hideElement(clientQueryMessage);
+        document.getElementById('client-message-status').innerHTML = '';
         
         this.changeMainText('Now the client queries C. This should return value = ' + SET_VALUE2, () => {
           this.animationState = ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER;
@@ -390,6 +391,8 @@ export class ReadOperationAnimation extends Component {
             var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE, false);
             animation.finished.then(() => {
               HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
+              document.getElementById('client-node-value-error-header').innerHTML = 'Value: V1';
+              document.getElementById('client-node-value-error-subtitle').innerHTML = 'Expected value = V2';
             });
             this.animationState = Constants.ANIMATION_STATE_FINISHED;
             this.setState({ animationFinished: true });
