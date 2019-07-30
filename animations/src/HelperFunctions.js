@@ -1,8 +1,6 @@
 import anime from 'animejs/lib/anime.es.js';
 
 import {Constants} from './constants';
-import {clientNodePositions} from './svg/MainDiagram';
-
 
 // Set text content of a SVG text element
 // params:{
@@ -140,15 +138,15 @@ export function sendLogMessage(fromNode, toNode, returnAck, isAck, value, commit
 			sourceNodeTextElementId = 'node-a-extra-text';
 			sourceNodeAdditionalTextElementId = 'node-a-extra-text2';
 
-			if(toNode == Constants.NODE_B) {
+			if(toNode === Constants.NODE_B) {
 				messageElement = document.getElementById('node-a-message-to-b');
 				textElementId = 'node-b-extra-text';
 				additionalTextElementID = 'node-b-extra-text2';
-			} else if (toNode == Constants.NODE_C) {
+			} else if (toNode === Constants.NODE_C) {
 				messageElement = document.getElementById('node-a-message-to-c');
 				textElementId = 'node-c-extra-text';
 				additionalTextElementID = 'node-c-extra-text2';
-			} else if (toNode == Constants.CLIENT_NODE) {
+			} else if (toNode === Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-a-message-to-client');
 			}
 			break;
@@ -158,11 +156,11 @@ export function sendLogMessage(fromNode, toNode, returnAck, isAck, value, commit
 			sourceNodeTextElementId = 'node-b-extra-text';
 			sourceNodeAdditionalTextElementId = 'node-b-extra-text2';
 
-			if(toNode == Constants.NODE_A) {
+			if(toNode === Constants.NODE_A) {
 				messageElement = document.getElementById('node-b-message-to-a');
 				textElementId = 'node-a-extra-text';
 				additionalTextElementID = 'node-a-extra-text2';
-			} else if (toNode == Constants.NODE_C) {
+			} else if (toNode === Constants.NODE_C) {
 				messageElement = document.getElementById('node-b-message-to-c');
 				textElementId = 'node-c-extra-text';
 				additionalTextElementID = 'node-c-extra-text2';
@@ -174,15 +172,15 @@ export function sendLogMessage(fromNode, toNode, returnAck, isAck, value, commit
 			sourceNodeTextElementId = 'node-c-extra-text';
 			sourceNodeAdditionalTextElementId = 'node-c-extra-text2';
 
-			if (toNode == Constants.NODE_A) {
+			if (toNode === Constants.NODE_A) {
 				messageElement = document.getElementById('node-c-message-to-a');
 				textElementId = 'node-a-extra-text';
 				additionalTextElementID = 'node-a-extra-text2';
-			} else if (toNode == Constants.NODE_B) {
+			} else if (toNode === Constants.NODE_B) {
 				messageElement = document.getElementById('node-c-message-to-b');
 				textElementId = 'node-b-extra-text';
 				additionalTextElementID = 'node-b-extra-text2';
-			} else if (toNode == Constants.CLIENT_NODE) {
+			} else if (toNode === Constants.CLIENT_NODE) {
 				messageElement = document.getElementById('node-c-message-to-client');
 			}
 			break;
@@ -192,13 +190,13 @@ export function sendLogMessage(fromNode, toNode, returnAck, isAck, value, commit
 			messageElement = document.getElementById('client-message-circle');
 			messageContrainer = document.getElementById('client-message');
 
-			if (toNode == Constants.NODE_A) {
+			if (toNode === Constants.NODE_A) {
 				textElementId = 'node-a-extra-text';
 				additionalTextElementID = 'node-a-extra-text2';
-			} else if (toNode == Constants.NODE_B) {
+			} else if (toNode === Constants.NODE_B) {
 				textElementId = 'node-b-extra-text';
 				additionalTextElementID = 'node-b-extra-text2';
-			} else if (toNode == Constants.NODE_C) {
+			} else if (toNode === Constants.NODE_C) {
 				textElementId = 'node-c-extra-text';
 				additionalTextElementID = 'node-c-extra-text2';
 			}
@@ -317,14 +315,14 @@ export function messageFromC(destination, params) {
 	var translateX = 0;
 	var translateY = 0;
 	var targets = "";
-	if (destination == Constants.NODE_B) {
+	if (destination === Constants.NODE_B) {
 		translateX = -140;
 		translateY = -276;
 		targets = '#node-c-message-to-b';
-	} else if (destination == Constants.NODE_A) {
+	} else if (destination === Constants.NODE_A) {
 		targets = '#node-c-message-to-a';
 		translateX = -275;
-	} else if (destination == Constants.CLIENT_NODE) {
+	} else if (destination === Constants.CLIENT_NODE) {
 		targets = '#node-c-message-to-client';
 		translateX = -130;
 		translateY = 135;
@@ -349,7 +347,7 @@ export function messageFromA(destination, params) {
 	var translateX = 0;
 	var translateY = 0;
 	var targets = "";
-	if (destination == Constants.NODE_B) {
+	if (destination === Constants.NODE_B) {
 		translateX = 160;
 		translateY = -290;
 		targets = '#node-a-message-to-b';
@@ -357,7 +355,7 @@ export function messageFromA(destination, params) {
 		translateX = 275;
 		targets = '#node-a-message-to-c';
 	}
-	else if (destination == Constants.CLIENT_NODE) {
+	else if (destination === Constants.CLIENT_NODE) {
 		translateX = 150;
 		translateY = 148;
 		targets = '#node-a-message-to-client';
@@ -387,7 +385,7 @@ export function messageFromB(destination, params) {
 	var translateX = 0;
 	var translateY = 0;
 	var targets = "";
-	if (destination == Constants.NODE_A) {
+	if (destination === Constants.NODE_A) {
 		translateX = -160;
 		translateY = 290;
 		targets = '#node-b-message-to-a';

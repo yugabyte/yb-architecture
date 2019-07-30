@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import './App.css';
-import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
 import {Constants} from './constants';
 
@@ -87,7 +86,7 @@ class RaftWriteAnimation extends Component {
 				var fasterTimeoutCircle = document.getElementById('node-c-outer-circle');
 				fasterTimeoutCircle.classList.add('leader-candidate-node');
 
-				var nodeCVoteText = document.getElementById('node-c-extra-text');
+				const nodeCVoteText = document.getElementById('node-c-extra-text');
 				nodeCVoteText.classList.remove('visibility-hidden');
 
 				this.changeMainText('After election timeout the follower becomes a candidate. '
@@ -152,7 +151,7 @@ class RaftWriteAnimation extends Component {
 				var nodeBVoteText = document.getElementById('node-b-extra-text');
 				nodeBVoteText.classList.remove('visibility-hidden');
 
-				var nodeCVoteText = document.getElementById('node-c-extra-text');
+				const nodeCVoteText = document.getElementById('node-c-extra-text');
 				nodeCVoteText.textContent = 'Leader Node';
 
 				var nodeCOuterCircle = document.getElementById('node-c-outer-circle');

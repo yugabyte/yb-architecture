@@ -8,9 +8,6 @@ import { Constants } from './constants';
 var HelperFunctions = require('./HelperFunctions');
 
 const ANIMATION_STATE_UNSAFE_READ = "ANIMATION_STATE_UNSAFE_READ";
-const ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT = "ANIMATION_STATE_LEADER_RECEIVED_MESSAGE_FROM_CLIENT";
-const ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS = "ANIMATION_STATE_LEADER_RECEIVED_ACKS_FROM_FOLLOWERS";
-const ANIMATION_STATE_NETWORK_PARTITIONED = "ANIMATION_STATE_NETWORK_PARTITIONED";
 const ANIMATION_STATE_NODE_C_PARTITIONED = "ANIMATION_STATE_NODE_C_PARTITIONED";
 const ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER = "ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER";
 const ANIMATION_STATE_CLIENT_SET_OPERATION = 'ANIMATION_STATE_CLIENT_SET_OPERATION';
@@ -18,11 +15,7 @@ const ANIMATION_STATE_CLIENT_READ_FROM_NODE_C = 'ANIMATION_STATE_CLIENT_READ_FRO
 const ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER = "ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER";
 const ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE = 'ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE';
 
-const SET_VALUE1="V1";
 const SET_VALUE2="V2";
-function setValueText(value) {
-	return HelperFunctions.getSetValueText(value);
-}
 
 export class ReadOperationAnimation extends Component {
 	constructor(props) {
@@ -67,12 +60,8 @@ export class ReadOperationAnimation extends Component {
     const nodeCExtraText = document.getElementById('node-c-extra-text');
     // Highlight for Text Extra (Line 2)
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
-    const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
-    const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
-    const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    const nodeCExtraText2 = document.getElementById('node-c-extra-text2'); 
 
     // MESSAGE OBJECTS
     const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
@@ -355,7 +344,7 @@ export class ReadOperationAnimation extends Component {
                 statusText2.innerHTML = clientContent2.str.substr(0, clientContent2.index);
               },
               complete: () => {
-                var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+                HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
                 this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
                 resolve({
                   animationState: this.animationState,
@@ -441,11 +430,8 @@ export class ReadOperationAnimation extends Component {
     // Highlight for Text Extra (Line 2)
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
-    const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
-    const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    const nodeCExtraText2 = document.getElementById('node-c-extra-text2'); 
 
     // MESSAGE OBJECTS
     const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
@@ -461,7 +447,7 @@ export class ReadOperationAnimation extends Component {
 
     switch(this.animationState) {
       case ANIMATION_STATE_UNSAFE_READ: {
-        var nodeC = document.getElementById('node-c-circle');
+        let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.remove('leader-node');
         HelperFunctions.hideElement(nodeATextContainer);
         HelperFunctions.hideElement(nodeBTextContainer);
@@ -481,7 +467,7 @@ export class ReadOperationAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_NODE_C_PARTITIONED: {
-        var nodeC = document.getElementById('node-c-circle');
+        let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.remove('leader-node');
         nodeATermText.innerHTML = '';
         nodeBTermText.innerHTML = '';
@@ -563,6 +549,7 @@ export class ReadOperationAnimation extends Component {
         document.getElementById('client-message-status').innerHTML = '';
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
+        HelperFunctions.hideElement(clientQueryMessage);
         nodeAExtraText.innerText = '(k, V1)';
         nodeBExtraText.innerText = '(k, V1)';
         HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 1"});
@@ -760,7 +747,7 @@ export class ReadOperationAnimation extends Component {
                 statusText2.innerHTML = clientContent2.str.substr(0, clientContent2.index);
               },
               complete: () => {
-                var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+                HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
                 this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
                 resolve({
                   animationState: this.animationState,

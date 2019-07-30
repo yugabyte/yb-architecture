@@ -78,11 +78,9 @@ export class LeaderLeaseAnimation extends Component {
     // Highlight for Text Extra (Line 2)
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
-    const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
     const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    const nodeCExtraText2 = document.getElementById('node-c-extra-text2'); 
 
     // MESSAGE OBJECTS
     const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
@@ -381,7 +379,6 @@ export class LeaderLeaseAnimation extends Component {
                     complete: () => {
                       var messageContrainerElement = document.getElementById('client-message');
                       var messageElement = document.getElementById('client-message-circle');
-                      var messageTextElement = document.getElementById('client-message-text');
                       HelperFunctions.messageFromClient(Constants.NODE_A,	{
                         onBegin: () => {
                           HelperFunctions.showElement(messageContrainerElement);
@@ -494,7 +491,7 @@ export class LeaderLeaseAnimation extends Component {
           str: 'Once Leader Lease on A expires, it becomes raft leader.'
         };
 
-        var textAnimation = anime({
+        anime({
           targets: content,
           index: content.str.length,
           easing: 'linear',
@@ -657,11 +654,9 @@ export class LeaderLeaseAnimation extends Component {
     // Highlight for Text Extra (Line 2)
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
-    const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
     const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    const nodeCExtraText2 = document.getElementById('node-c-extra-text2'); 
 
     // MESSAGE OBJECTS
     const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
@@ -701,7 +696,7 @@ export class LeaderLeaseAnimation extends Component {
         HelperFunctions.hideElement(nodeAExtraText);
         HelperFunctions.hideElement(nodeBExtraText);
         HelperFunctions.hideElement(nodeCExtraText);
-        var nodeC = document.getElementById('node-c-circle');
+        let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.remove('leader-node');
 
         // Redo phase
@@ -917,7 +912,7 @@ export class LeaderLeaseAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_OLD_LEADER_STILL_READABLE: {
-        var nodeA = document.getElementById('node-a-circle');
+        let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.remove('leader-candidate-node');
         HelperFunctions.hideElement(clientMessageBubble);
         HelperFunctions.hideElement(clientQueryMessage);
@@ -1019,7 +1014,6 @@ export class LeaderLeaseAnimation extends Component {
                     complete: () => {
                       var messageContrainerElement = document.getElementById('client-message');
                       var messageElement = document.getElementById('client-message-circle');
-                      var messageTextElement = document.getElementById('client-message-text');
                       HelperFunctions.messageFromClient(Constants.NODE_A,	{
                         onBegin: () => {
                           HelperFunctions.showElement(messageContrainerElement);
@@ -1061,7 +1055,7 @@ export class LeaderLeaseAnimation extends Component {
         HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
         HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
         document.getElementById('node-c-message-text-alt').innerHTML = '';
-        var nodeC = document.getElementById('node-c-circle');
+        let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.add('leader-node');
 
         const contentLine1 = {
@@ -1092,9 +1086,9 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_NEW_LEADER_SENT_LEASES: {
         HelperFunctions.hideElement(document.getElementById('node-a-timer-highlight'));
         HelperFunctions.hideElement(document.getElementById('node-a-message-bubble'));
-        var nodeC = document.getElementById('node-c-circle');
+        let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.add('leader-node');
-        var nodeA = document.getElementById('node-a-circle');
+        let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.add('leader-candidate-node');
         HelperFunctions.hideElement(nodeAMessageBubble);
         document.getElementById('node-a-message-status').innerHTML = '';
@@ -1136,7 +1130,7 @@ export class LeaderLeaseAnimation extends Component {
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
         HelperFunctions.hideElement(clientMessageBubble);
-        var nodeA = document.getElementById('node-a-circle');
+        let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.add('leader-candidate-node');
         nodeA.classList.remove('leader-node');
         document.getElementById('client-message-status').innerHTML = '';
@@ -1175,7 +1169,7 @@ export class LeaderLeaseAnimation extends Component {
 
               // then send leader lease message to B
               var leaseToB = document.getElementById('node-a-lease-to-node-b');
-              var nodeBLeaseAnimation = anime({
+              anime({
                 targets: leaseToB,
                 translateX: 150,
                 translateY: -280,
@@ -1262,6 +1256,7 @@ export class LeaderLeaseAnimation extends Component {
           animationState: this.animationState,
           delay: 100,
         });
+        break;
       }
       default:
         console.error('Unrecognized state: ' + this.animationState);
