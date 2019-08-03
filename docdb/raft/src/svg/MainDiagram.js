@@ -159,7 +159,6 @@ class MainDiagram extends Component {
 					<text id="client-message-text" x={clientX - 18} y={clientY + 24}>
 					</text>
 				</g>
-				<image href="./warning-sign.jpg" width="200" x="0" y="0" />
 				
 				<circle id="node-b-small-circle" className="node-small-circle" cx={nodeBX + 24} cy={nodeBY + 12} />
 
