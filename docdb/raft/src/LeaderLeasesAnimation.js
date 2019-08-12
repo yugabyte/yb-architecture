@@ -105,7 +105,7 @@ export class LeaderLeaseAnimation extends Component {
 				}
 				
 				//////////////////////////////////////////////////////
-				this.changeMainText('Let\'s say we have a 3-node raft group.<br />C is the raft leader, all nodes have data <br />k = V1', () => {
+				this.changeMainText('Let\'s say we have a 3-node Raft group.<br />C is the Raft leader, all nodes have data <br />k = V1', () => {
           // make Node C  the leader
           var nodeC = document.getElementById('node-c-circle');
           nodeC.classList.add('leader-node');
@@ -338,7 +338,7 @@ export class LeaderLeaseAnimation extends Component {
         nodeAMessageStatus.innerHTML = '';
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
-				this.changeMainText('If client tries to write to A, operation is rejected..', () => {
+				this.changeMainText('If client tries to write to A, operation is rejected...', () => {
           HelperFunctions.introduceClient();
           HelperFunctions.showElement(clientMessageBubble);
           HelperFunctions.showElement(clientMessageBackground);
@@ -407,7 +407,7 @@ export class LeaderLeaseAnimation extends Component {
                           HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
                           HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
                           document.getElementById('client-node-value-error-header').innerHTML = 'Query Rejected:';
-                          document.getElementById('client-node-value-error-subtitle').innerHTML = 'Cannot find raft leader';
+                          document.getElementById('client-node-value-error-subtitle').innerHTML = 'Old leader still has lease';
                         },
                         alternate: true,
                       });
@@ -508,7 +508,7 @@ export class LeaderLeaseAnimation extends Component {
         const nodeAMessage = document.getElementById('node-a-message-status');
         const content = {
           index: 0,
-          str: 'Once Leader Lease on A expires, it becomes raft leader.'
+          str: 'Once Leader Lease on A expires, it becomes Raft leader.'
         };
 
         anime({
@@ -600,7 +600,7 @@ export class LeaderLeaseAnimation extends Component {
             messageStatus.textContent = content.str.substr(0, content.index);
           },
           complete: () => {
-            // initiate a raft round
+            // initiate a Raft round
             this.nodeATimerAnimation.restart();
    
             // client message to A
@@ -750,7 +750,7 @@ export class LeaderLeaseAnimation extends Component {
 				}
 				
 				//////////////////////////////////////////////////////
-				this.changeMainText('Let\'s say we have a 3-node raft group.<br />C is the raft leader, all nodes have data <br />k = V1', () => {
+				this.changeMainText('Let\'s say we have a 3-node Raft group.<br />C is the Raft leader, all nodes have data <br />k = V1', () => {
           // make Node C  the leader
           nodeC.classList.add('leader-node');
           HelperFunctions.showElement(nodeATextContainer);
@@ -1023,7 +1023,7 @@ export class LeaderLeaseAnimation extends Component {
         document.getElementById('client-query-message-text1').innerHTML = '';
         document.getElementById('client-query-message-text2').innerHTML = '';
         document.getElementById('client-query-message-text3').innerHTML = '';
-				this.changeMainText('If client tries to write to A, operation is rejected..', () => {
+				this.changeMainText('If client tries to write to A, operation is rejected...', () => {
           HelperFunctions.introduceClient();
           HelperFunctions.showElement(clientMessageBubble);
           HelperFunctions.showElement(clientMessageBackground);
@@ -1208,7 +1208,7 @@ export class LeaderLeaseAnimation extends Component {
         const nodeAMessage = document.getElementById('node-a-message-status');
         const content = {
           index: 0,
-          str: 'Once Leader Lease on A expires, it becomes raft leader.'
+          str: 'Once Leader Lease on A expires, it becomes Raft leader.'
         };
 
         anime({
@@ -1298,7 +1298,7 @@ export class LeaderLeaseAnimation extends Component {
             messageStatus.textContent = content.str.substr(0, content.index);
           },
           complete: () => {
-            // initiate a raft round
+            // initiate a Raft round
             
             // client message to A
             var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');

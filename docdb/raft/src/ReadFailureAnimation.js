@@ -82,7 +82,7 @@ export class ReadOperationAnimation extends Component {
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
 				}
 				//////////////////////////////////////////////////////
-				this.changeMainText('Let\'s say we have a 3-node raft group.<br />C is the raft leader, all nodes have data <br />k = V1', () => {
+				this.changeMainText('Let\'s say we have a 3-node Raft group.<br />C is the Raft leader, all nodes have data <br />k = V1', () => {
 					// make Node C the Leader
 					var nodeC = document.getElementById('node-c-circle');
 					nodeC.classList.add('leader-node');
@@ -111,7 +111,7 @@ export class ReadOperationAnimation extends Component {
         const nodeCText = document.getElementById('node-c-message-text-alt')
         const contentLine1 = {
 					index: 0,
-					str: 'Unsafe to read from raft leader without majority heartbeats. This sequence explains why.'
+					str: 'Unsafe to read from Raft leader without majority heartbeats. This sequence explains why.'
         };
 
         anime({
@@ -139,7 +139,7 @@ export class ReadOperationAnimation extends Component {
 
 				const contentLine1 = {
 					index: 0,
-					str: 'Now imagine raft leader C gets\n partitioned from followers\n[but not from client]'
+					str: 'Now imagine Raft leader C gets\n partitioned from followers\n[but not from client]'
         };
 
         anime({
@@ -167,7 +167,7 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.showElement(nodeAMessageBubble);
         const content = {
 					index: 0,
-					str: 'This results in A and B\n electing a new raft\nleader, say A.'
+					str: 'This results in A and B\n electing a new Raft\nleader, say A.'
         };
 
         anime({
@@ -383,7 +383,7 @@ export class ReadOperationAnimation extends Component {
 
 				const contentLine1 = {
 					index: 0,
-					str: 'C thinks it is the raft leader.\nWithout majority heartbeats,\nC will respond with value = V1'
+					str: 'C thinks it is the Raft leader.\nWithout majority heartbeats,\nC will respond with value = V1'
         };
 
         anime({
@@ -495,7 +495,7 @@ export class ReadOperationAnimation extends Component {
         nodeAExtraText.innerHTML = '';
         nodeBExtraText.innerHTML = '';
         nodeCExtraText.innerHTML = '';
-        this.changeMainText('Let\'s say we have a 3-node raft group.<br />C is the raft leader, all nodes have data <br />k = V1', () => {
+        this.changeMainText('Let\'s say we have a 3-node Raft group.<br />C is the Raft leader, all nodes have data <br />k = V1', () => {
           nodeATermText.innerHTML = 'Term: 1';
           nodeBTermText.innerHTML = 'Term: 1';
           nodeCTermText.innerHTML = 'Term: 1';
@@ -518,7 +518,7 @@ export class ReadOperationAnimation extends Component {
         nodeCText.innerText = '';
         const contentLine1 = {
 					index: 0,
-					str: 'Unsafe to read from raft leader without majority heartbeats. This sequence explains why.'
+					str: 'Unsafe to read from Raft leader without majority heartbeats. This sequence explains why.'
         };
 
         anime({
@@ -554,7 +554,7 @@ export class ReadOperationAnimation extends Component {
 
 				const contentLine1 = {
 					index: 0,
-					str: 'Now imagine raft leader C gets\n partitioned from followers\n[but not from client]'
+					str: 'Now imagine Raft leader C gets\n partitioned from followers\n[but not from client]'
         };
 
         anime({
@@ -591,7 +591,7 @@ export class ReadOperationAnimation extends Component {
         HelperFunctions.showElement(nodeAMessageBubble);
         const content = {
 					index: 0,
-					str: 'This results in A and B\n electing a new raft\nleader, say A.'
+					str: 'This results in A and B\n electing a new Raft\nleader, say A.'
         };
 
         anime({

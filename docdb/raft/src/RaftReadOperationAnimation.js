@@ -85,7 +85,7 @@ export class RaftReadOperationAnimation extends Component {
 					HelperFunctions.hideElement(nodeOuterCircles[i]);
         }
 
-        this.changeMainText('Let’s say we have a 3-node raft group.');
+        this.changeMainText('Let’s say we have a 3-node Raft group.');
         this.animationState = ANIMATION_STATE_EXPLAIN_PROTOCOL;
 
         resolve({
@@ -95,7 +95,7 @@ export class RaftReadOperationAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_EXPLAIN_PROTOCOL: {
-				this.changeMainText('Nodes would have performed leader election..', () => {
+				this.changeMainText('Nodes would have performed leader election...', () => {
           // Show each text container and then edit the text within them
           HelperFunctions.showElement(nodeATextContainer);
           HelperFunctions.showElement(nodeBTextContainer);
@@ -118,7 +118,7 @@ export class RaftReadOperationAnimation extends Component {
         HelperFunctions.showElement(document.getElementById('node-c-message-status'));
         const contentLine1 = {
           index: 0,
-          str: 'C is the current raft leader,'
+          str: 'C is the current Raft leader,'
         };
         const contentLine2 = {
           index: 0,
@@ -246,11 +246,11 @@ export class RaftReadOperationAnimation extends Component {
 				HelperFunctions.showElement(statusElem);
 				const contentLine1 = {
 					index: 0,
-					str: 'Per raft protocol, leader should'
+					str: 'Per Raft protocol, leader should'
 				}
 				const contentLine2 = {
 					index: 0,
-					str: 'obtain majority heartbeat.'
+					str: 'exchange heartbeats with a majority.'
 				}
 				const leaderTextLine1 = document.getElementById('node-c-message-status-text1');
 				const leaderTextLine2 = document.getElementById('node-c-message-status-text2')
@@ -297,7 +297,7 @@ export class RaftReadOperationAnimation extends Component {
           }
           const leaderText2 = {
             index: 0,
-            str: 'raft leader can serve read.'
+            str: 'Raft leader can serve the read request.'
           }
           const ltxt1 = document.getElementById('node-c-message-status-text1');
           const ltxt2 = document.getElementById('node-c-message-status-text2')
@@ -415,7 +415,7 @@ export class RaftReadOperationAnimation extends Component {
         HelperFunctions.hideElement(nodeCTextContainer);
         // Redo previous phase
         HelperFunctions.showElement(this.mainTextSect);
-        this.changeMainText('Let’s say we have a 3-node raft group.', () => { this.animationState = ANIMATION_STATE_EXPLAIN_PROTOCOL });
+        this.changeMainText('Let’s say we have a 3-node Raft group.', () => { this.animationState = ANIMATION_STATE_EXPLAIN_PROTOCOL });
 
         resolve({
           animationState: ANIMATION_STATE_EXPLAIN_PROTOCOL,
@@ -438,7 +438,7 @@ export class RaftReadOperationAnimation extends Component {
         nodeCExtraText.innerHTML = '';
 
         // Redo previous phase
-        this.changeMainText('Nodes would have performed leader election..', () => {
+        this.changeMainText('Nodes would have performed leader election...', () => {
           nodeAExtraText.innerHTML = 'Voted For C';
           nodeBExtraText.innerHTML = 'Voted For C';
           nodeCExtraText.innerHTML = 'Voted For C';
@@ -467,7 +467,7 @@ export class RaftReadOperationAnimation extends Component {
         HelperFunctions.showElement(document.getElementById('node-c-message-status'));
         const contentLine1 = {
           index: 0,
-          str: 'C is the current raft leader,'
+          str: 'C is the current Raft leader,'
         };
         const contentLine2 = {
           index: 0,
@@ -597,11 +597,11 @@ export class RaftReadOperationAnimation extends Component {
         
         const contentLine1 = {
 					index: 0,
-					str: 'Per raft protocol, leader should'
+					str: 'Per Raft protocol, leader should'
 				}
 				const contentLine2 = {
 					index: 0,
-					str: 'obtain majority heartbeat.'
+					str: 'exchange heartbeats with a majority.'
 				}
 				
 				anime({
@@ -653,7 +653,7 @@ export class RaftReadOperationAnimation extends Component {
           }
           const leaderText2 = {
             index: 0,
-            str: 'raft leader can serve read.'
+            str: 'Raft leader can serve the read request.'
           }
           const ltxt1 = document.getElementById('node-c-message-status-text1');
           const ltxt2 = document.getElementById('node-c-message-status-text2')

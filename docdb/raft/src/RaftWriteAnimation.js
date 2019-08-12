@@ -43,7 +43,7 @@ class RaftWriteAnimation extends Component {
 	onNextInternal(resolve,reject) {
 		switch(this.animationState) {
 			case AnimationState.INITIAL: {
-				this.changeMainText('Leader election starts ...');
+				this.changeMainText('Leader election starts...');
 
 				// initiate a timeout
 				setTimeout(() => {
@@ -178,7 +178,7 @@ class RaftWriteAnimation extends Component {
 				for (var i = 0; i < voteTexts.length; i++){
 					HelperFunctions.hideElement(voteTexts[i]);
 				}
-				this.changeMainText('Log replication ...');
+				this.changeMainText('Log replication...');
 
 				this.animationState = AnimationState.LOG_REPLICATION_INTRODUCE_CLIENT;
 				resolve({
