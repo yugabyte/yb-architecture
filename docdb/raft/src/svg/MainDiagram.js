@@ -133,26 +133,16 @@ class MainDiagram extends Component {
 				<g id="node-c-partition-wrap" className="visibility-hidden">
 					<path d="M250,360a83,75,0,1,1,190,-15" id="node-c-partition" className="node-partition"/>
 					<text fill="black">
-						<tspan x={nodeCPositions.partitionText1.x} y={nodeCPositions.partitionText1.y}>Partitioned</tspan>
-						<tspan x={nodeCPositions.partitionText2.x} y={nodeCPositions.partitionText2.y}>from A & B</tspan>
+						<tspan x={nodeCPositions.partitionText1.x - 10} y={nodeCPositions.partitionText1.y + 5}>Partitioned</tspan>
+						<tspan x={nodeCPositions.partitionText2.x - 10} y={nodeCPositions.partitionText2.y + 5}>from A & B</tspan>
 					</text>
 				</g>
-				<g>
-					{/* Node A text with white background */}
-					<rect id="client-message-status-bg" className="visibility-hidden" x={clientX - 92} y={clientY - 152} fill="white" width="210" height="76"></rect>
-					<text id="client-query-message" x={clientX - 90} y={clientY - 148} className="visibility-hidden">
-						<tspan id="client-query-message-anchor" x={clientX - 80} dy="1.2em">Query: </tspan>
-						<tspan id="client-query-message-text1" dx={5} className="code-block"></tspan>
-						<tspan id="client-query-message-text2" x={clientX - 83} dy="1.2em" className="code-block"></tspan>
-						<tspan id="client-query-message-text3" x={clientX - 83} dy="1.2em" className="code-block"></tspan>
-					</text>
-					<foreignObject x={clientX - 85} y={clientY - 148} width="200" height="70">
-						<div id="client-message-status"></div>
+				<g id="client-group">
+					{/* Client text with white background */}
+					<rect id="client-message-status-bg" className="visibility-hidden" x={clientX - 92} y={clientY - 152} fill="white" width="190" height="76"></rect>
+					<foreignObject id="client-status-wrapper" x={clientX - 85} y={clientY - 148} width="180" height="100%">
+						<div id="client-status-text"></div>
 					</foreignObject>
-
-					<path id="client-message-bubble" className="visibility-hidden"
-						d={`M${clientX + 3},${clientY - 50} l0,-26 l-90,0 c0,0 -5,0 -5,-5 l0,-65 c0,0 0,-5 5,-5 l200,0 c0,0 5,0 5,5 l0,65 c0,0 0,5 -5,5 l-90,0 z`}
-						style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
 				</g>
 				<g id="client-message" className="visibility-hidden">
 					<circle id="client-message-circle" className="client-message" cx={clientX} cy={clientY}/>
@@ -191,21 +181,12 @@ class MainDiagram extends Component {
 					</text>
 				</g>
 
-        		{/* Node C bubble text area */}
-				<foreignObject x={nodeCX - 15} y={nodeCY - 174} width="235" height="80">
-					<div id="node-c-message-text-alt"></div>
-				</foreignObject>
-				<text id="node-c-message-status" x={nodeCX - 10} y={nodeCY - 130} className="visibility-hidden">
-					<tspan id="node-c-message-status-text1" x={nodeCX - 10} dy="1.2em"></tspan>
-					<tspan id="node-c-message-status-text2" x={nodeCX - 10} dy="1.2em"></tspan>
-				</text>
-				<path id="node-c-message-bubble" className="visibility-hidden"
-					d={`M${nodeCX + 40},${nodeCX - 40} l0,-26 l-55,0 c0,0 -5,0 -5,-5 l0,-65 c0,0 0,-5 5,-5 l215,0 c0,0 5,0 5,5 l0,65 c0,0 0,5 -5,5 l-140,0 z`}
-					style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
-        		<path id="node-c-message-bubble-alt" className="visibility-hidden"
-					d={`M${nodeCX + 45},${nodeCX - 50} l15,-40 l-80,0 c0,0 -5,0 -5,-5 l0,-80 c0,0 0,-5 5,-5 l235,0 c0,0 5,0 5,5 l0,80 c0,0 0,5 -5,5 l-135,0 z`}
-					style={{fillOpacity: 0, stroke:'black', strokeWidth:1}}></path>
-
+				{/* Node C bubble text area */}
+				<g id="node-c-group">
+					<foreignObject id="node-c-message-wrapper" x={nodeCX - 15} y={nodeCY - 174} width="170" height="100%">
+						<div id="node-c-message-text"></div>
+					</foreignObject>
+				</g>
 				{/* node A */}
 
 				{/* main and outer circles */}
@@ -258,15 +239,18 @@ class MainDiagram extends Component {
           <text id="node-b-term-text-rect" x={nodeBX} y={nodeBY + 43} fill="black" className="visibility-hidden">
             <tspan id="node-b-term-text" x={nodeBX} dy="1.2em"></tspan>
             <tspan id="node-b-extra-text" className="node-extra-text" x={nodeBX} dy="1.2em"></tspan>
-            <tspan id="node-b-extra-text2" className="node-extra-text2" dx={"0.5em"}></tspan>
+			<tspan id="node-b-extra-text2" className="node-extra-text2" dx="0.5em"></tspan>
           </text>
         </g>
 
 		{/* Node A text with white background */}
-		<rect id="node-a-message-status-bg" className="visibility-hidden" x={nodeAX - 40} y={nodeAY - 167} fill="white" width="207" height="100"></rect>
-        <foreignObject x={nodeAX - 32} y={nodeAY - 155} width="200" height="80">	
-			<div id="node-a-message-status"></div>
-		</foreignObject>
+		{/* <rect id="node-a-message-status-bg" className="visibility-hidden" x={nodeAX - 40} y={nodeAY - 167} fill="white" width="207" height="100"></rect> */}
+		<g id="node-a-group">
+			<rect id="node-a-message-status-bg" className="visibility-hidden" x={nodeAX - 32} y={nodeAY - 155} fill="white" width="190" height="100"></rect>
+			<foreignObject id="node-a-message-wrapper" x={nodeAX - 32} y={nodeAY - 155} width="170" height="100%">	
+				<div id="node-a-message-text"></div>
+			</foreignObject>	
+		</g>
 		{/* speech bubble */}
 		<path id="node-a-message-bubble" className="visibility-hidden"
 			// d={`M${nodeAX + 20},${nodeAY - 40} l0,-26 l-55,0 c0,0 -5,0 -5,-5 l0,-80 c0,0 0,-5 5,-5 l170,0 c0,0 5,0 5,5 l0,80 c0,0 0,5 -5,5 l-90,0 z`}

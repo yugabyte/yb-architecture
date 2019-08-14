@@ -82,18 +82,6 @@ export class LeaderLeaseAnimation extends Component {
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
     const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
 
-    // MESSAGE OBJECTS
-    const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
-    const nodeAMessageStatus = document.getElementById('node-a-message-status');
-    const nodeCMessageBubble = document.getElementById('node-c-message-bubble');
-    const nodeCMessageStatus = document.getElementById('node-c-message-status');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
-    const clientQueryMessage = document.getElementById('client-query-message');
-    const clientMessageStatus = document.getElementById('client-message-status');
-    const clientMessageBackground = document.getElementById('client-message-status-bg');
-
 		switch(this.animationState) {
 			case Constants.ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -146,51 +134,29 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_START_LEADER_LEASE: {
         this.changeMainText('');
-        HelperFunctions.showElement(nodeCMessageBubble);
-        HelperFunctions.showElement(nodeCMessageStatus);
-        const statusText1 = document.getElementById('node-c-message-status-text1');
-        const statusText2 = document.getElementById('node-c-message-status-text2');
+        const status = document.getElementById('node-c-message-text');
 
-        const contentLine1 = {
-          index: 0,
-          str: 'Raft leader starts a'
-        }
-        const contentLine2 = {
-          index: 0,
-          str: 'new lease timer for itself.'
-        }
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 600,
-          update: function() {
-            statusText1.textContent = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Raft leader stats a new lease timer for itself.');
           },
           complete: () => {
-            anime({
-              targets: contentLine2,
-              index: contentLine2.str.length,
-              easing: 'linear',
-              duration: 600,
-              update: function() {
-                statusText2.textContent = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => {
-                this.timersAreActive = true;
-                this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
-                  duration: ORIGINAL_LEADER_INITIAL_DURATION,
-                  targetPercent: 90,
-                  disableAutoPlay: true,
-                });
-                this.nodeCTimerAnimation.play();
-                this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
-                resolve({
-                  animationState: this.animationState,
-                  delay: 100,
-                  asyncAnimation: true,
-                });
-              }
+            this.timersAreActive = true;
+            this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+              duration: ORIGINAL_LEADER_INITIAL_DURATION,
+              targetPercent: 90,
+              disableAutoPlay: true,
+            });
+            this.nodeCTimerAnimation.play();
+            this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+              asyncAnimation: true,
             });
           }
         });
@@ -198,23 +164,17 @@ export class LeaderLeaseAnimation extends Component {
       }
 			case ANIMATION_STATE_LEADER_REPLICATES_LEASE: {
         this.nodeCTimerAnimation.seek(0);
-        HelperFunctions.hideElement(nodeCMessageBubble);
-        HelperFunctions.hideElement(nodeCMessageStatus);
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-        const textAlt = document.getElementById('node-c-message-text-alt');
+        HelperFunctions.destroyNodeCMessage();
         var leaseToA = document.getElementById('node-c-lease-to-node-a');
-        const content = {
-					index: 0,
-					str: 'Raft leader then replicates a\nlease interval to followers. Note\nthe lease timer on C has started\nbefore replicating to A and B.'
-        };
+        const leaderStatus = document.getElementById('node-c-message-text');
 
         var nodeCTextAnimation = anime({
-          targets: content,
-          index: content.str.length,
+          targets: leaderStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2500,
-          update: function() {
-            textAlt.innerText = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Raft leader then replicates a lease interval to followers. Note the lease timer on C has started before replicating to A and B.');
           }
 				});
         var nodeALeaseAnimation = anime({
@@ -253,7 +213,7 @@ export class LeaderLeaseAnimation extends Component {
             leaseToB.style.transform = 'none';
           },
         });
-        Promise.all([nodeCTextAnimation.finished, nodeALeaseAnimation.finished,nodeBLeaseAnimation.finished, this.nodeCTimerAnimation]).then(() => {
+        Promise.all([nodeCTextAnimation.finished, nodeALeaseAnimation.finished, nodeBLeaseAnimation.finished, this.nodeCTimerAnimation]).then(() => {
           this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
             duration: ORIGINAL_LEADER_INITIAL_DURATION,
             targetPercent: 85
@@ -273,9 +233,7 @@ export class LeaderLeaseAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_LEADER_LEASE_DURATION: {
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
-
+        HelperFunctions.destroyNodeCMessage();
         this.changeMainText('Any new leader must wait out the existing Leader Lease duration before acquiring lease.', () => {
           this.animationState = ANIMATION_STATE_ORIGINAL_LEADER_PARITIONED;
           resolve({
@@ -299,20 +257,14 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_NEW_LEADER_CANDIDATE_ELECTED: {
         this.changeMainText('');
-        HelperFunctions.showElement(nodeAMessageBubble);
-        HelperFunctions.showElement(document.getElementById('node-a-message-status-bg'));
-        const nodeAContent = {
-          index: 0,
-          str: 'A wins new leader election\n but cannot perform any\noperations until Leader\nLease on A runs out.'
-        };
-
+        const nodeAContent = document.getElementById('node-a-message-text');
         anime({
           targets: nodeAContent,
-          index: nodeAContent.str.length,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            nodeAMessageStatus.innerText = nodeAContent.str.substr(0, nodeAContent.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('A wins new leader election but cannot perform any operations until Leader Lease on A runs out.');
           },
           complete: () => {
             // elect Node A as new leader candidate
@@ -329,96 +281,53 @@ export class LeaderLeaseAnimation extends Component {
             });
           }
 				});
-        
         break;
       }
 			case ANIMATION_STATE_CLIENT_UPDATE_FAILS: {
-        HelperFunctions.hideElement(nodeAMessageBubble);
-        HelperFunctions.hideElement(document.getElementById('node-a-message-status-bg'));
-        nodeAMessageStatus.innerHTML = '';
+        HelperFunctions.destroyNodeAMessage();
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
 				this.changeMainText('If client tries to write to A, operation is rejected...', () => {
           HelperFunctions.introduceClient();
-          HelperFunctions.showElement(clientMessageBubble);
-          HelperFunctions.showElement(clientMessageBackground);
-          HelperFunctions.showElement(clientQueryMessage);
-          const clientContent1 = {
-            index: 0,
-            str: 'UPDATE T SET'
-          }
-          const clientContent2 = {
-            index: 0,
-            str: 'value = V2 WHERE'
-          }
-          const clientContent3 = {
-            index: 0,
-            str: ' key = k'
-          }
-          
-          const statusText1 = document.getElementById('client-query-message-text1');
-          const statusText2 = document.getElementById('client-query-message-text2');
-          const statusText3 = document.getElementById('client-query-message-text3');
+          const clientStatus = document.getElementById('client-status-text');
+
           anime({
-            targets: clientContent1,
-            index: clientContent1.str.length,
+            targets: clientStatus,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 400,
-            update: function() {
-              statusText1.textContent = clientContent1.str.substr(0, clientContent1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createClientMessage('UPDATE T SET value = V2 WHERE <br>key = k', true);
             },
             complete: () => {
-              anime({
-                targets: clientContent2,
-                index: clientContent2.str.length,
-                easing: 'linear',
-                duration: 400,
-                update: function () {
-                  statusText2.textContent = clientContent2.str.substr(0, clientContent2.index);
+              var messageContrainerElement = document.getElementById('client-message');
+              var messageElement = document.getElementById('client-message-circle');
+              HelperFunctions.messageFromClient(Constants.NODE_A,	{
+                onBegin: () => {
+                  HelperFunctions.showElement(messageContrainerElement);
+                  messageElement.classList.add('log-message');
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
                 },
-                complete: () => {
-                  anime({
-                    targets: clientContent3,
-                    index: clientContent3.str.length,
-                    easing: 'linear',
-                    duration: 400,
-                    update: function () {
-                      statusText3.textContent = clientContent3.str.substr(0, clientContent3.index);
-                    },
-                    complete: () => {
-                      var messageContrainerElement = document.getElementById('client-message');
-                      var messageElement = document.getElementById('client-message-circle');
-                      HelperFunctions.messageFromClient(Constants.NODE_A,	{
-                        onBegin: () => {
-                          HelperFunctions.showElement(messageContrainerElement);
-                          messageElement.classList.add('log-message');
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
-                        },
-                        onChangeComplete: () => {
-                          messageElement.classList.remove('log-message');
-                          messageElement.classList.add('error-message');
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: 'Rejected'});
-                          // messageTextElement
-                        },
-                        onComplete: () => {
-                          messageElement.classList.remove('error-message');
-                          HelperFunctions.hideElement(messageContrainerElement);
-                          messageContrainerElement.style.transform = 'none';
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
-                          HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
-                          document.getElementById('client-node-value-error-header').innerHTML = 'Query Rejected:';
-                          document.getElementById('client-node-value-error-subtitle').innerHTML = 'Old leader still has lease';
-                        },
-                        alternate: true,
-                      });
-                      this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
-                      resolve({
-                        animationState: this.animationState,
-                        delay: 100,
-                      });
-                    }
-                  });
-                }
+                onChangeComplete: () => {
+                  messageElement.classList.remove('log-message');
+                  messageElement.classList.add('error-message');
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: 'Rejected'});
+                },
+                onComplete: () => {
+                  messageElement.classList.remove('error-message');
+                  HelperFunctions.hideElement(messageContrainerElement);
+                  messageContrainerElement.style.transform = 'none';
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
+                  HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
+                  document.getElementById('client-node-value-error-header').innerHTML = 'Query Rejected:';
+                  document.getElementById('client-node-value-error-subtitle').innerHTML = 'Old leader still has lease';
+                },
+                alternate: true,
+              });
+              this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
+              resolve({
+                animationState: this.animationState,
+                delay: 100,
               });
             }
           });
@@ -427,21 +336,16 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_OLD_LEADER_STILL_READABLE: {
         this.changeMainText('');
-        HelperFunctions.hideElement(document.getElementById('client-query-message'));
+        HelperFunctions.destroyClientMessage();
         HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
-
-        const contentLine1 = {
-          index: 0,
-          str: 'Client can still read from C and get a valid response. Writes, however, are unavailable at this moment.'
-        };
-
+        const clientStatus = document.getElementById('client-status-text');
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: clientStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            clientMessageStatus.textContent = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('Client can still read from C and get a valid response. Writes, however, are unavailable at this moment.')
           },
           complete: () => {
             HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
@@ -455,14 +359,8 @@ export class LeaderLeaseAnimation extends Component {
        break;
       }
       case ANIMATION_STATE_OLD_LEASE_EXPIRES: {
-        HelperFunctions.hideElement(clientMessageBubble);
-        document.getElementById('client-message-status').innerHTML = '';
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-        const nodeCTextAlt = document.getElementById('node-c-message-text-alt');
-        const content = {
-          index: 0,
-          str: 'Leader Lease of C will run out\nfirst [since it started first]. \nC now steps down as leader.'
-        };
+        HelperFunctions.destroyClientMessage();
+        const nodeCStatus = document.getElementById('node-c-message-text');
         this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
           duration: 6000,
           startPercent: 85,
@@ -479,12 +377,12 @@ export class LeaderLeaseAnimation extends Component {
         });
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: nodeCStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            nodeCTextAlt.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Leader Lease of C will run out first (since it started first). C now steps down as leader.');
           },
         });
         this.nodeCTimerAnimation.finished.then(() => {
@@ -500,24 +398,16 @@ export class LeaderLeaseAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_NEW_LEADER_ELECTED: {
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
-
-        HelperFunctions.showElement(document.getElementById('node-a-message-bubble'));
-        HelperFunctions.showElement(document.getElementById('node-a-message-status-bg'));
-        const nodeAMessage = document.getElementById('node-a-message-status');
-        const content = {
-          index: 0,
-          str: 'Once Leader Lease on A expires, it becomes Raft leader.'
-        };
+        HelperFunctions.destroyNodeCMessage();
+        const status = document.getElementById('node-a-message-text');
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 800,
-          update: function() {
-            nodeAMessage.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('Once Leader Lease on A expires, it becomes Raft leader.');
           },
           complete: () => {
             this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
@@ -579,25 +469,16 @@ export class LeaderLeaseAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_NEW_LEADER_SENT_LEASES: {
-        HelperFunctions.hideElement(document.getElementById('node-a-message-bubble'));
-        HelperFunctions.hideElement(document.getElementById('node-a-message-status-bg'));
+        HelperFunctions.destroyNodeAMessage();
         HelperFunctions.hideElement(document.getElementById('node-a-timer-highlight'));
-        document.getElementById('node-a-message-status').innerHTML = '';
-        HelperFunctions.showElement(clientMessageBubble);
-        const messageStatus = document.getElementById('client-message-status');
-
-        const content = {
-          index: 0,
-          str: 'From here on, client can issue reads/writes to the new leader.'
-        }
-
+        const clientStatus = document.getElementById('client-message-status');
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: clientStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            messageStatus.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('From here on, client can issue reads/writes to the new leader.');
           },
           complete: () => {
             // initiate a Raft round
@@ -644,9 +525,7 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_LEADER_LEASE_CONCLUSION: {
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(clientMessageBackground);
-        document.getElementById('client-message-status').innerHTML = '';
+        HelperFunctions.destroyClientMessage();
         this.changeMainText('Leader Leases ensure low latency reads even when nodes are across regions.', () => {
           this.animationState = Constants.ANIMATION_STATE_FINISHED;
           this.stopTimers();
@@ -700,18 +579,6 @@ export class LeaderLeaseAnimation extends Component {
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
     const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-
-    // MESSAGE OBJECTS
-    const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
-    const nodeAMessageStatus = document.getElementById('node-a-message-status');
-    const nodeCMessageBubble = document.getElementById('node-c-message-bubble');
-    const nodeCMessageStatus = document.getElementById('node-c-message-status');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
-    const clientQueryMessage = document.getElementById('client-query-message');
-    const clientMessageStatus = document.getElementById('client-message-status');
-    const clientMessageBackground = document.getElementById('client-message-status-bg');
 
 		switch(this.animationState) {
 			case ANIMATION_STATE_LEADER_READS_PROTOCOL: {
@@ -780,9 +647,7 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_LEADER_REPLICATES_LEASE: {
         // Undo phase
-        HelperFunctions.hideElement(nodeCMessageBubble);
-        document.getElementById('node-c-message-status-text1').innerHTML = '';
-        document.getElementById('node-c-message-status-text2').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-c'));
 
         // Redo phase
@@ -799,57 +664,32 @@ export class LeaderLeaseAnimation extends Component {
         // Undo phase
         HelperFunctions.hideElement(document.getElementById('llease-rect-node-a'));
         HelperFunctions.hideElement(document.getElementById('llease-rect-node-b'));;
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-c'));
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
 
         // Redo phase
         this.changeMainText('');
-        HelperFunctions.showElement(nodeCMessageBubble);
-        HelperFunctions.showElement(nodeCMessageStatus);
-        const statusText1 = document.getElementById('node-c-message-status-text1');
-        statusText1.innerHTML = '';
-        const statusText2 = document.getElementById('node-c-message-status-text2');
-        statusText2.innerHTML = '';
+        const nodeCStatus = document.getElementById('node-c-message-text')
 
-        const contentLine1 = {
-          index: 0,
-          str: 'Raft leader starts a'
-        }
-        const contentLine2 = {
-          index: 0,
-          str: 'new lease timer for itself.'
-        }
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: nodeCStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 600,
-          update: function() {
-            statusText1.textContent = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Raft leader starts a new lease timer for itself.');
           },
           complete: () => {
-            anime({
-              targets: contentLine2,
-              index: contentLine2.str.length,
-              easing: 'linear',
-              duration: 600,
-              update: function() {
-                statusText2.textContent = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => {
-                this.timersAreActive = true;
-                HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
-                  duration: ORIGINAL_LEADER_INITIAL_DURATION,
-                  targetPercent: 90,
-                });
-                this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
-                resolve({
-                  animationState: this.animationState,
-                  delay: 100,
-                  asyncAnimation: true,
-                });
-              }
+            this.timersAreActive = true;
+            HelperFunctions.startMyLeaseTimer(Constants.NODE_C, {
+              duration: ORIGINAL_LEADER_INITIAL_DURATION,
+              targetPercent: 90,
+            });
+            this.animationState = ANIMATION_STATE_LEADER_REPLICATES_LEASE;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+              asyncAnimation: true,
             });
           }
         });
@@ -858,26 +698,20 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_ORIGINAL_LEADER_PARITIONED: {
         this.changeMainText('');
         // this.changeMainText('Leader replicates a lease interval to followers', () => {
-        HelperFunctions.hideElement(nodeCMessageBubble);
-        HelperFunctions.hideElement(nodeCMessageStatus);
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
+        HelperFunctions.destroyNodeCMessage();
         HelperFunctions.hideElement(document.getElementById('llease-rect-node-a'));
         HelperFunctions.hideElement(document.getElementById('llease-rect-node-b'));
 
-        const textAlt = document.getElementById('node-c-message-text-alt');
         var leaseToA = document.getElementById('node-c-lease-to-node-a');
-        const content = {
-          index: 0,
-          str: 'Raft leader then replicates a\nlease interval to followers. Note\nthe lease timer on C has started\nbefore replicating to A and B.'
-        };
+        const content = document.getElementById('node-c-message-text');
 
         var nodeCTextAnimation = anime({
           targets: content,
-          index: content.str.length,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2500,
-          update: function() {
-            textAlt.innerText = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Raft leader then replicates a lease interval to followers. Note the lease timer on C has started before replicating to A and B.')
           }
         });
         var nodeALeaseAnimation = anime({
@@ -953,10 +787,8 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_CLIENT_UPDATE_FAILS: {
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
-        HelperFunctions.hideElement(nodeAMessageBubble);
         HelperFunctions.hideElement(document.getElementById('node-c-partition-wrap'));
-        HelperFunctions.hideElement(document.getElementById('node-a-message-status-bg'));
-        document.getElementById('node-a-message-status').innerHTML = '';
+        HelperFunctions.destroyNodeAMessage();
         var nodeA = document.getElementById('node-a-circle');
         nodeA.classList.remove('leader-candidate-node');
         this.changeMainText('Now suppose the original leader gets network partitioned', () => {
@@ -973,30 +805,23 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_OLD_LEADER_STILL_READABLE: {
         let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.remove('leader-candidate-node');
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(clientQueryMessage);
-        document.getElementById('client-query-message-text1').innerHTML = '';
-        document.getElementById('client-query-message-text2').innerHTML = '';
-        document.getElementById('client-query-message-text3').innerHTML = '';
+        HelperFunctions.destroyNodeAMessage();
+        HelperFunctions.destroyClientMessage();
         HelperFunctions.hideElement(document.getElementById('client-node'));
-        HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
+        HelperFunctions.hideElement(document.getElementById('client-message-circle'));
         document.getElementById('client-message-text').innerHTML = '';
+        HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
 
         this.changeMainText('');
-        HelperFunctions.showElement(nodeAMessageBubble);
-        HelperFunctions.showElement(document.getElementById('node-a-message-status-bg'));
-        const nodeAContent = {
-          index: 0,
-          str: 'A wins new leader election\n but cannot perform any\noperations until Leader\nLease on A runs out.'
-        };
+        const nodeAContent = document.getElementById('node-a-message-text');
 
         anime({
           targets: nodeAContent,
-          index: nodeAContent.str.length,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            nodeAMessageStatus.innerText = nodeAContent.str.substr(0, nodeAContent.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('A wins new leader election but cannot perform any operations until Leader Lease on A runs out.');
           },
           complete: () => {
             // elect Node A as new leader candidate
@@ -1016,92 +841,47 @@ export class LeaderLeaseAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_OLD_LEASE_EXPIRES: {
-        clientMessageStatus.innerHTML = '';
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(document.getElementById('client-node'));
+        HelperFunctions.destroyClientMessage();
         document.getElementById('client-message-text').innerHTML = '';
-        document.getElementById('client-query-message-text1').innerHTML = '';
-        document.getElementById('client-query-message-text2').innerHTML = '';
-        document.getElementById('client-query-message-text3').innerHTML = '';
+
 				this.changeMainText('If client tries to write to A, operation is rejected...', () => {
           HelperFunctions.introduceClient();
-          HelperFunctions.showElement(clientMessageBubble);
-          HelperFunctions.showElement(clientMessageBackground);
-          HelperFunctions.showElement(clientQueryMessage);
-          const clientContent1 = {
-            index: 0,
-            str: 'UPDATE T SET'
-          }
-          const clientContent2 = {
-            index: 0,
-            str: 'value = V2 WHERE'
-          }
-          const clientContent3 = {
-            index: 0,
-            str: ' key = k'
-          }
-          
-          const statusText1 = document.getElementById('client-query-message-text1');
-          const statusText2 = document.getElementById('client-query-message-text2');
-          const statusText3 = document.getElementById('client-query-message-text3');
+          const clientStatus = document.getElementById('client-status-text');
           anime({
-            targets: clientContent1,
-            index: clientContent1.str.length,
+            targets: clientStatus,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 400,
-            update: function() {
-              statusText1.textContent = clientContent1.str.substr(0, clientContent1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createClientMessage('UPDATE T SET value = V2 WHERE <br>key = k', true);
             },
             complete: () => {
-              anime({
-                targets: clientContent2,
-                index: clientContent2.str.length,
-                easing: 'linear',
-                duration: 400,
-                update: function () {
-                  statusText2.textContent = clientContent2.str.substr(0, clientContent2.index);
+              var messageContrainerElement = document.getElementById('client-message');
+              var messageElement = document.getElementById('client-message-circle');
+              HelperFunctions.messageFromClient(Constants.NODE_A,	{
+                onBegin: () => {
+                  HelperFunctions.showElement(messageContrainerElement);
+                  messageElement.classList.add('log-message');
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
                 },
-                complete: () => {
-                  anime({
-                    targets: clientContent3,
-                    index: clientContent3.str.length,
-                    easing: 'linear',
-                    duration: 400,
-                    update: function () {
-                      statusText3.textContent = clientContent3.str.substr(0, clientContent3.index);
-                    },
-                    complete: () => {
-                      var messageContrainerElement = document.getElementById('client-message');
-                      var messageElement = document.getElementById('client-message-circle');
-                      HelperFunctions.messageFromClient(Constants.NODE_A,	{
-                        onBegin: () => {
-                          HelperFunctions.showElement(messageContrainerElement);
-                          messageElement.classList.add('log-message');
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
-                        },
-                        onChangeComplete: () => {
-                          messageElement.classList.remove('log-message');
-                          messageElement.classList.add('error-message');
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: 'Rejected'});
-                          // messageTextElement
-                        },
-                        onComplete: () => {
-                          messageElement.classList.remove('error-message');
-                          HelperFunctions.hideElement(messageContrainerElement);
-                          messageContrainerElement.style.transform = 'none';
-                          HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
-                          HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
-                        },
-                        alternate: true,
-                      });
-                      this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
-                      resolve({
-                        animationState: this.animationState,
-                        delay: 100,
-                      });
-                    }
-                  });
-                }
+                onChangeComplete: () => {
+                  messageElement.classList.remove('log-message');
+                  messageElement.classList.add('error-message');
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: 'Rejected'});
+                },
+                onComplete: () => {
+                  messageElement.classList.remove('error-message');
+                  HelperFunctions.hideElement(messageContrainerElement);
+                  messageContrainerElement.style.transform = 'none';
+                  HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
+                  HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
+                },
+                alternate: true,
+              });
+              this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
+              resolve({
+                animationState: this.animationState,
+                delay: 100,
               });
             }
           });
@@ -1110,27 +890,19 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_NEW_LEADER_ELECTED: {
         this.changeMainText('');
-        HelperFunctions.hideElement(document.getElementById('client-query-message'));
-        HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
         let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.add('leader-node');
+        HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
 
-        const contentLine1 = {
-          index: 0,
-          str: 'Client can still read from C and get a valid response. Writes, however, are unavailable at this moment.'
-        };
-
-        HelperFunctions.showElement(clientMessageBubble);
-
+        const clientStatus = document.getElementById('client-status-text');
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: clientStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            clientMessageStatus.textContent = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('Client can still read from C and get a valid response. Writes, however, are unavailable at this moment.')
           },
           complete: () => {
             this.animationState = ANIMATION_STATE_OLD_LEASE_EXPIRES;
@@ -1144,21 +916,13 @@ export class LeaderLeaseAnimation extends Component {
       }
       case ANIMATION_STATE_NEW_LEADER_SENT_LEASES: {
         HelperFunctions.hideElement(document.getElementById('node-a-timer-highlight'));
-        HelperFunctions.hideElement(document.getElementById('node-a-message-bubble'));
+        HelperFunctions.destroyNodeAMessage();
         let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.add('leader-node');
         let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.add('leader-candidate-node');
-        HelperFunctions.hideElement(nodeAMessageBubble);
-        document.getElementById('node-a-message-status').innerHTML = '';
-        HelperFunctions.hideElement(clientMessageBubble);
-        document.getElementById('client-message-status').innerHTML = '';
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-        const nodeCTextAlt = document.getElementById('node-c-message-text-alt');
-        const content = {
-          index: 0,
-          str: 'Leader Lease of C will run out\nfirst [since it started first]. \nC now steps down as leader.'
-        };
+        
+        const nodeCStatus = document.getElementById('node-c-message-text');
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-a'));
         this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
           duration: 6000,
@@ -1171,12 +935,12 @@ export class LeaderLeaseAnimation extends Component {
         this.nodeCTimerAnimation = HelperFunctions.startMyLeaseTimer(Constants.NODE_C, { duration: 6000 });
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: nodeCStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            nodeCTextAlt.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Leader Lease of C will run outfirst (since it started first). C now steps down as leader.');
           },
         });
         this.nodeCTimerAnimation.finished.then(() => {
@@ -1194,30 +958,21 @@ export class LeaderLeaseAnimation extends Component {
       case ANIMATION_STATE_LEADER_LEASE_CONCLUSION: {
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
-        HelperFunctions.hideElement(clientMessageBubble);
+        HelperFunctions.destroyClientMessage();
         let nodeA = document.getElementById('node-a-circle');
         nodeA.classList.add('leader-candidate-node');
         nodeA.classList.remove('leader-node');
-        document.getElementById('client-message-status').innerHTML = '';
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
 
-        HelperFunctions.showElement(document.getElementById('node-a-message-bubble'));
-        HelperFunctions.showElement(document.getElementById('node-a-message-status-bg'));
+        const status = document.getElementById('node-a-message-text');
         HelperFunctions.hideElement(document.getElementById('mlease-rect-node-a'));
-        const nodeAMessage = document.getElementById('node-a-message-status');
-        const content = {
-          index: 0,
-          str: 'Once Leader Lease on A expires, it becomes Raft leader.'
-        };
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 800,
-          update: function() {
-            nodeAMessage.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('Once Leader Lease on A expires, it becomes Raft leader.');
           },
           complete: () => {
             this.nodeATimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_A, {
@@ -1279,23 +1034,15 @@ export class LeaderLeaseAnimation extends Component {
       case Constants.ANIMATION_STATE_FINISHED: {
         this.setState({animationFinished: false});
         this.changeMainText('');
-        document.getElementById('node-a-message-status').innerHTML = '';
-        HelperFunctions.showElement(document.getElementById('client-message-status-bg'));
-        HelperFunctions.showElement(clientMessageBubble);
-        const messageStatus = document.getElementById('client-message-status');
-
-        const content = {
-          index: 0,
-          str: 'From here on, client can issue reads/writes to the new leader.'
-        }
+        const content = document.getElementById('client-status-text');
 
         anime({
           targets: content,
-          index: content.str.length,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 2000,
-          update: function() {
-            messageStatus.textContent = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('From here on, client can issue reads/writes to the new leader.');
           },
           complete: () => {
             // initiate a Raft round

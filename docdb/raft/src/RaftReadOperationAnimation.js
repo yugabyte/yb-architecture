@@ -4,8 +4,7 @@ import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
 import { Constants } from './constants';
-
-var HelperFunctions = require('./HelperFunctions');
+import * as HelperFunctions from './HelperFunctions';
 
 const ANIMATION_STATE_EXPLAIN_PROTOCOL = 'ANIMATION_STATE_EXPLAIN_PROTOCOL';
 const ANIMATION_STATE_LEADER_ELECTION = 'ANIMATION_STATE_LEADER_ELECTION';
@@ -64,20 +63,15 @@ export class RaftReadOperationAnimation extends Component {
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
     const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
-    // Text Extra (Line 3)
-    // const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
-    // const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    // const nodeCExtraText2 = document.getElementById('node-c-extra-text2');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
+    
+    // const status = document.getElementById('client-message-status');
+    // const groupA = document.getElementById('node-a-group');
+    // status.innerText = 'Query: SELECT value from T WHERE k = key fwaef;oif;woiajf;oiwejfa';
+    // HelperFunctions.generateSvgTextbox(150, 430, 200, status.offsetHeight + 20, groupA);
 
 		switch(this.animationState) {
 			case Constants.ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
-				// make Node C the Leader
-				// var nodeC = document.getElementById('node-c-circle');
-				// nodeC.classList.add('leader-node');
 
 				// hide all outer circles (TODO: revisit this approach)
 				let nodeOuterCircles = document.getElementsByClassName('node-outer-circle');
@@ -114,56 +108,31 @@ export class RaftReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_LEADER_ELECTION: {
         this.changeMainText('');
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
-        HelperFunctions.showElement(document.getElementById('node-c-message-status'));
-        const contentLine1 = {
-          index: 0,
-          str: 'C is the current Raft leader,'
-        };
-        const contentLine2 = {
-          index: 0,
-          str: 'denoted by a black border.'
-        };
-        const statusTextLine1 = document.getElementById('node-c-message-status-text1');
-        const statusTextLine2 = document.getElementById('node-c-message-status-text2');
+        const textNodeC = document.getElementById('node-c-message-text');
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: textNodeC,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 600,
-          update: function() {
-            statusTextLine1.innerHTML = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('C is the current Raft leader, as denoted by the black border.');
           },
           complete: () => {
-            anime({
-              targets: contentLine2,
-              index: contentLine2.str.length,
-              easing: 'linear',
-              duration: 900,
-              update: function() {
-                statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => {
-                document.getElementById('node-c-circle').classList.add('leader-node');
-                nodeATermText.innerHTML = 'Term: 1';
-                nodeBTermText.innerHTML = 'Term: 1';
-                nodeCTermText.innerHTML = 'Term: 1';
-                this.animationState = ANIMATION_STATE_NODE_DATA;
-                resolve({
-                  animationState: ANIMATION_STATE_NODE_DATA,
-                  delay: 100,
-                });
-              }
+            document.getElementById('node-c-circle').classList.add('leader-node');
+            nodeATermText.innerHTML = 'Term: 1';
+            nodeBTermText.innerHTML = 'Term: 1';
+            nodeCTermText.innerHTML = 'Term: 1';
+            this.animationState = ANIMATION_STATE_NODE_DATA;
+            resolve({
+              animationState: ANIMATION_STATE_NODE_DATA,
+              delay: 100,
             });
           }
         });
         break;
       }
       case ANIMATION_STATE_NODE_DATA: {
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
-        HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
-        document.getElementById('node-c-message-status-text1').innerHTML = '';
-        document.getElementById('node-c-message-status-text2').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
 				this.changeMainText('Assume all nodes have data: <br />(key,value) = (k, V1)', () => {
           nodeAExtraText.innerHTML = '(k, V1)';
           nodeBExtraText.innerHTML = '(k, V1)';
@@ -189,147 +158,77 @@ export class RaftReadOperationAnimation extends Component {
           HelperFunctions.hideElement(nodeAExtraHighlight);
           HelperFunctions.hideElement(nodeBExtraHighlight);
           HelperFunctions.hideElement(nodeCExtraHighlight);
-
-          HelperFunctions.showElement(document.getElementById('client-message'));
-          const statusElem = document.getElementById('client-query-message');
-          document.getElementById('client-query-message-text1');
-          const contentLine1 = {
-            index: 0,
-            str: 'SELECT value'
-          }
-          const contentLine2 = {
-            index: 0,
-            str: 'FROM T WHERE key = k'
-          }
-          const statusTextLine1 = document.getElementById('client-query-message-text1');
-          const statusTextLine2 = document.getElementById('client-query-message-text2');
-          HelperFunctions.showElement(clientMessageBubble);
-          HelperFunctions.showElement(statusElem);
+          const statusElem = document.getElementById('client-status-text')
+          
           anime({
-            targets: contentLine1,
-            index: contentLine1.str.length,
+            targets: statusElem,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 600,
-            update: function() {
-              statusTextLine1.textContent = contentLine1.str.substr(0, contentLine1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createClientMessage('SELECT value FROM T WHERE <br />key = k', true);
             },
             complete: () => {
-              anime({
-                targets: contentLine2,
-                index: contentLine2.str.length,
-                easing: 'linear',
-                duration: 900,
-                update: function() {
-                  statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
-                },
-                complete: () => HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false)
+              HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+              this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
+              resolve({
+                animationState: ANIMATION_STATE_PERFORMED_READ_ON_LEADER,
+                delay: 100,
               });
             }
           });
-
-					this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
-					resolve({
-						animationState: ANIMATION_STATE_PERFORMED_READ_ON_LEADER,
-						delay: 100,
-					});
 				})
 				break;
 			}
 			case ANIMATION_STATE_PERFORMED_READ_ON_LEADER: {
-				// Leader contacts followers to obtain a consensus on current value
-				HelperFunctions.hideElement(document.getElementById('client-query-message'));
-        HelperFunctions.hideElement(clientMessageBubble);
-        document.getElementById('client-query-message-text1').innerHTML = '';
-        document.getElementById('client-query-message-text2').innerHTML = ''
-				const statusElem = document.getElementById('node-c-message-status');
-				HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
-				HelperFunctions.showElement(statusElem);
-				const contentLine1 = {
-					index: 0,
-					str: 'Per Raft protocol, leader should'
-				}
-				const contentLine2 = {
-					index: 0,
-					str: 'exchange heartbeats with a majority.'
-				}
-				const leaderTextLine1 = document.getElementById('node-c-message-status-text1');
-				const leaderTextLine2 = document.getElementById('node-c-message-status-text2')
+        // Leader contacts followers to obtain a consensus on current value
+        HelperFunctions.destroyClientMessage();
+        const statusElem = document.getElementById('node-c-message-text');
 				anime({
-					targets: contentLine1,
-					index: contentLine1.str.length,
+					targets: statusElem,
+					opacity: [0, 1],
 					easing: 'linear',
-					duration: 800,
-					update: function() {
-						leaderTextLine1.textContent = contentLine1.str.substr(0, contentLine1.index);
+					duration: 1200,
+					begin: function() {
+            HelperFunctions.createNodeCMessage('Raft Leader will exchange heartbeats with a majority.');
 					},
 					complete: () => {
-						anime({
-							targets: contentLine2,
-							index: contentLine2.str.length,
-							easing: 'linear',
-							duration: 1040,
-							update: function() {
-								leaderTextLine2.textContent = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => HelperFunctions.logMessageFromLeaderToFollowers(false)
-            });
+					  HelperFunctions.logMessageFromLeaderToFollowers(false);
             
             this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS;
+            resolve({
+              animationState: this.animationState,
+              delay: 1000
+            });
 					}
-				});
-
-				resolve({
-					animationState: this.animationState,
-					delay: 1000
 				});
 				break;
 			}
 			case ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS: {
+        HelperFunctions.destroyNodeCMessage();
         const receivedAckAnimation = HelperFunctions.logMessageAckFromFollowersToLeader();
 
         receivedAckAnimation[0].finished.then(() => {
           // Once majority is obtained. The leader returns value back to the client
-          document.getElementById('node-c-message-status-text1').textContent = 'Leader:';
-          document.getElementById('node-c-message-status-text2').textContent = '';
-          const leaderText1 = {
-            index: 7,
-            str: 'Majority heartbeat obtained,'
-          }
-          const leaderText2 = {
-            index: 0,
-            str: 'Raft leader can serve the read request.'
-          }
-          const ltxt1 = document.getElementById('node-c-message-status-text1');
-          const ltxt2 = document.getElementById('node-c-message-status-text2')
+          const statusElement = document.getElementById('node-c-message-text');
           anime({
-            targets: leaderText1,
-            index: leaderText1.str.length,
+            targets: statusElement,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 800,
-            update: function() {
-              ltxt1.textContent = leaderText1.str.substr(0, leaderText1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createNodeCMessage('Leader: Majority heartbeat obtained, Raft leader can serve the read request.');
             },
             complete: () => {
-              anime({
-                targets: leaderText2,
-                index: leaderText2.str.length,
-                easing: 'linear',
-                duration: 1080,
-                update: function() {
-                  ltxt2.textContent = leaderText2.str.substr(0, leaderText2.index);
-                },
-                complete: () => {
-                  var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
-                  animation.finished.then(() => {
-                    HelperFunctions.setSVGText({targetId: 'client-node-value', text: `value: ${SET_VALUE1}`, showElement: true });
+              var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
+              animation.finished.then(() => {
+                HelperFunctions.setSVGText({targetId: 'client-node-value', text: `value: ${SET_VALUE1}`, showElement: true });
 
-                    this.animationState = ANIMATION_STATE_CLIENT_FINISH_OPERATION;
-                    resolve({
-                      animationState: this.animationState,
-                      delay: 100
-                    });
-                  });
-                }
+                this.animationState = ANIMATION_STATE_CLIENT_FINISH_OPERATION;
+                resolve({
+                  animationState: this.animationState,
+                  delay: 100
+                });
               });
             }
           });
@@ -337,9 +236,7 @@ export class RaftReadOperationAnimation extends Component {
 				break;
       }
       case ANIMATION_STATE_CLIENT_FINISH_OPERATION: {
-				HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
-        HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
-        
+        HelperFunctions.destroyNodeCMessage();
         this.changeMainText(warningSVG(26, 28) + ' If nodes are in different regions, obtaining majority heartbeat is expensive. Query has high latency.');
         this.animationState = Constants.ANIMATION_STATE_FINISHED;
         this.setState({ animationFinished: true });
@@ -386,14 +283,6 @@ export class RaftReadOperationAnimation extends Component {
     const nodeAExtraHighlight = document.getElementById('node-a-text-highlight');
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
     const nodeCExtraHighlight = document.getElementById('node-c-text-highlight');
-    // Text Extra (Line 3)
-    // const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
-    // const nodeBExtraText2 = document.getElementById('node-b-extra-text2');
-    // const nodeCExtraText2 = document.getElementById('node-c-extra-text2');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
-
     
 		switch(this.animationState) {
 
@@ -426,10 +315,7 @@ export class RaftReadOperationAnimation extends Component {
       case ANIMATION_STATE_NODE_DATA: {
         // Undo phase
         document.getElementById('node-c-circle').classList.remove('leader-node');
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
-        HelperFunctions.hideElement(document.getElementById('node-c-message-status'));
-        document.getElementById('node-c-message-status-text1').innerHTML = '';
-        document.getElementById('node-c-message-status-text2').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
         nodeATermText.innerHTML = '';
         nodeBTermText.innerHTML = '';
         nodeCTermText.innerHTML = '';
@@ -462,58 +348,33 @@ export class RaftReadOperationAnimation extends Component {
         nodeAExtraText.innerHTML = 'Voted for C';
         nodeBExtraText.innerHTML = 'Voted for C';
         nodeCExtraText.innerHTML = 'Voted for C';
-        
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
-        HelperFunctions.showElement(document.getElementById('node-c-message-status'));
-        const contentLine1 = {
-          index: 0,
-          str: 'C is the current Raft leader,'
-        };
-        const contentLine2 = {
-          index: 0,
-          str: 'denoted by the black border.'
-        };
-        const statusTextLine1 = document.getElementById('node-c-message-status-text1');
-        const statusTextLine2 = document.getElementById('node-c-message-status-text2');
+
+        const statusElement = document.getElementById('node-c-message-text');
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: statusElement,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 600,
-          update: function() {
-            statusTextLine1.innerHTML = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('C is the current Raft leader, denoted by the black border.');
           },
           complete: () => {
-            anime({
-              targets: contentLine2,
-              index: contentLine2.str.length,
-              easing: 'linear',
-              duration: 900,
-              update: function() {
-                statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => {
-                document.getElementById('node-c-circle').classList.add('leader-node');
-                nodeATermText.innerHTML = 'Term: 1';
-                nodeBTermText.innerHTML = 'Term: 1';
-                nodeCTermText.innerHTML = 'Term: 1';
-                this.animationState = ANIMATION_STATE_NODE_DATA;
-                resolve({
-                  animationState: ANIMATION_STATE_NODE_DATA,
-                  delay: 100,
-                });
-              }
+            document.getElementById('node-c-circle').classList.add('leader-node');
+            nodeATermText.innerHTML = 'Term: 1';
+            nodeBTermText.innerHTML = 'Term: 1';
+            nodeCTermText.innerHTML = 'Term: 1';
+            this.animationState = ANIMATION_STATE_NODE_DATA;
+            resolve({
+              animationState: ANIMATION_STATE_NODE_DATA,
+              delay: 100,
             });
           }
         });
         break;
       }
       case ANIMATION_STATE_PERFORMED_READ_ON_LEADER: {
-        HelperFunctions.hideElement(document.getElementById('client-query-message'));
-        HelperFunctions.hideElement(clientMessageBubble);
+        HelperFunctions.destroyClientMessage();
         HelperFunctions.hideClient();
-        document.getElementById('client-query-message-text1').innerHTML = '';
-        document.getElementById('client-query-message-text2').innerHTML = '';
         this.changeMainText('Assume all nodes have data: <br />(key,value) = (k, V1)', () => {
           HelperFunctions.showElement(nodeAExtraHighlight);
           HelperFunctions.showElement(nodeBExtraHighlight);
@@ -527,11 +388,7 @@ export class RaftReadOperationAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS: {
-        const statusElem = document.getElementById('node-c-message-status');
-				HelperFunctions.hideElement(document.getElementById('node-c-message-bubble'));
-				HelperFunctions.hideElement(statusElem);
-				document.getElementById('node-c-message-status-text1').innerHTML = '';
-        document.getElementById('node-c-message-status-text2').innerHTML = '';
+        HelperFunctions.destroyNodeCMessage();
         var introduceClientAnimation = HelperFunctions.introduceClient('');
         this.changeMainText('');
 
@@ -539,90 +396,45 @@ export class RaftReadOperationAnimation extends Component {
           HelperFunctions.hideElement(nodeAExtraHighlight);
           HelperFunctions.hideElement(nodeBExtraHighlight);
           HelperFunctions.hideElement(nodeCExtraHighlight);
+          const statusElem = document.getElementById('client-status-text');
 
-          HelperFunctions.showElement(document.getElementById('client-message'));
-          const statusElem = document.getElementById('client-query-message');
-          document.getElementById('client-query-message-text1');
-          const contentLine1 = {
-            index: 0,
-            str: 'SELECT value'
-          }
-          const contentLine2 = {
-            index: 0,
-            str: 'FROM T WHERE key = k'
-          }
-          const statusTextLine1 = document.getElementById('client-query-message-text1');
-          const statusTextLine2 = document.getElementById('client-query-message-text2');
-          HelperFunctions.showElement(clientMessageBubble);
-          HelperFunctions.showElement(statusElem);
           anime({
-            targets: contentLine1,
-            index: contentLine1.str.length,
+            targets: statusElem,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 600,
-            update: function() {
-              statusTextLine1.innerHTML = contentLine1.str.substr(0, contentLine1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createClientMessage('SELECT value FROM T WHERE <br />key = k', true);
             },
             complete: () => {
-              anime({
-                targets: contentLine2,
-                index: contentLine2.str.length,
-                easing: 'linear',
-                duration: 900,
-                update: function() {
-                  statusTextLine2.innerHTML = contentLine2.str.substr(0, contentLine2.index);
-                },
-                complete: () => {
-                  const anim = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
-                  anim.finished.then(() => {
-                    this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
-                    resolve({
-                      animationState: ANIMATION_STATE_PERFORMED_READ_ON_LEADER,
-                      delay: 100,
-                    });
-                  })
-                }
-              });
+              const anim = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+              anim.finished.then(() => {
+                this.animationState = ANIMATION_STATE_PERFORMED_READ_ON_LEADER;
+                resolve({
+                  animationState: ANIMATION_STATE_PERFORMED_READ_ON_LEADER,
+                  delay: 100,
+                });
+              })
             }
           });
         });
         break;
       }
       case ANIMATION_STATE_CLIENT_FINISH_OPERATION: {
-        const leaderTextLine1 = document.getElementById('node-c-message-status-text1');
-        const leaderTextLine2 = document.getElementById('node-c-message-status-text2');
+        HelperFunctions.destroyNodeCMessage();
         HelperFunctions.hideElement(document.getElementById('client-node-value'));
-        leaderTextLine1.innerHTML = '';
-        leaderTextLine2.innerHTML = '';
-        
-        const contentLine1 = {
-					index: 0,
-					str: 'Per Raft protocol, leader should'
-				}
-				const contentLine2 = {
-					index: 0,
-					str: 'exchange heartbeats with a majority.'
-				}
+        const status = document.getElementById('node-c-message-text');
 				
 				anime({
-					targets: contentLine1,
-					index: contentLine1.str.length,
+					targets: status,
 					easing: 'linear',
-					duration: 800,
-					update: function() {
-						leaderTextLine1.textContent = contentLine1.str.substr(0, contentLine1.index);
-					},
+          duration: 1200,
+          opacity: [0, 1],
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Per Raft protocol, leader should exchange heartbeats with a majority.');
+          },
 					complete: () => {
-						anime({
-							targets: contentLine2,
-							index: contentLine2.str.length,
-							easing: 'linear',
-							duration: 1040,
-							update: function() {
-								leaderTextLine2.textContent = contentLine2.str.substr(0, contentLine2.index);
-              },
-              complete: () => HelperFunctions.logMessageFromLeaderToFollowers(false)
-            });
+            HelperFunctions.logMessageFromLeaderToFollowers(false)
             
             this.animationState = ANIMATION_STATE_LEADER_RECEIVED_MAJORITY_ON_VALUE_FROM_FOLLOWERS;
             resolve({
@@ -635,57 +447,33 @@ export class RaftReadOperationAnimation extends Component {
       }
       case Constants.ANIMATION_STATE_FINISHED: {
         this.changeMainText('');
-        HelperFunctions.hideElement(document.getElementById('client-node-value'))
-        document.getElementById('node-c-message-status-text1').innerHTML = '';
-        document.getElementById('node-c-message-status-text2').innerHTML = '';
+        HelperFunctions.hideElement(document.getElementById('client-node-value'));
+        HelperFunctions.destroyNodeCMessage();
         this.setState({ animationFinished: false });
         const receivedAckAnimation = HelperFunctions.logMessageAckFromFollowersToLeader();
 
         receivedAckAnimation[0].finished.then(() => {
           // Once majority is obtained. The leader returns value back to the client
-          const statusElem = document.getElementById('node-c-message-status');
-          HelperFunctions.showElement(document.getElementById('node-c-message-bubble'));
-          HelperFunctions.showElement(statusElem);
-          
-          const leaderText1 = {
-            index: 7,
-            str: 'Majority heartbeat obtained,'
-          }
-          const leaderText2 = {
-            index: 0,
-            str: 'Raft leader can serve the read request.'
-          }
-          const ltxt1 = document.getElementById('node-c-message-status-text1');
-          const ltxt2 = document.getElementById('node-c-message-status-text2')
+          const statusElem = document.getElementById('node-c-message-text');
+
           anime({
-            targets: leaderText1,
-            index: leaderText1.str.length,
+            targets: statusElem,
+            opacity: [0, 1],
             easing: 'linear',
-            duration: 800,
-            update: function() {
-              ltxt1.textContent = leaderText1.str.substr(0, leaderText1.index);
+            duration: 1200,
+            begin: function() {
+              HelperFunctions.createNodeCMessage('Majority heartbeat obtained, Raft leader can serve the read request.');
             },
             complete: () => {
-              anime({
-                targets: leaderText2,
-                index: leaderText2.str.length,
-                easing: 'linear',
-                duration: 1080,
-                update: function() {
-                  ltxt2.textContent = leaderText2.str.substr(0, leaderText2.index);
-                },
-                complete: () => {
-                  var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
-                  animation.finished.then(() => {
-                    HelperFunctions.setSVGText({targetId: 'client-node-value', text: `value: ${SET_VALUE1}`, showElement: true });
+              var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE);
+              animation.finished.then(() => {
+                HelperFunctions.setSVGText({targetId: 'client-node-value', text: `value: ${SET_VALUE1}`, showElement: true });
 
-                    this.animationState = ANIMATION_STATE_CLIENT_FINISH_OPERATION;
-                    resolve({
-                      animationState: this.animationState,
-                      delay: 100
-                    });
-                  });
-                }
+                this.animationState = ANIMATION_STATE_CLIENT_FINISH_OPERATION;
+                resolve({
+                  animationState: this.animationState,
+                  delay: 100
+                });
               });
             }
           });

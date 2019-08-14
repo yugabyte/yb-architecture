@@ -1,5 +1,6 @@
 import anime from 'animejs/lib/anime.es.js';
 
+import { clientNodePositions, nodeCPositions, nodeAPositions } from './svg/MainDiagram';
 import {Constants} from './constants';
 
 // Set text content of a SVG text element
@@ -49,12 +50,13 @@ export function setTextWithAnimation(textSect, text, onComplete, delay) {
 	ml4.opacityIn = [0,1];
 	ml4.scaleIn = [0.2, 1];
 	ml4.scaleOut = 3;
-	ml4.durationIn = 2000;
+	ml4.durationIn = 500;
 	ml4.durationOut = 2000;
 	ml4.delay = (delay?delay:500);
 
 	anime({
 		targets: textSect,
+		easing: 'linear',
 		opacity: ml4.opacityIn,
 		scale: ml4.scaleIn,
 		duration: ml4.durationIn,
@@ -507,4 +509,89 @@ function constructTimerId(prefix, forNode) {
 		}
 	}
 	return id;
+}
+
+// Dynamically generating SVG elements
+
+/**
+ * Creates a speech bubble mainly for placing text inside.
+ * @param {Number} x X-Coordinate of the top-left corner of the bubble
+ * @param {Number} y Y-Coordinate of the top-left corner of the bubble
+ * @param {Number} w Width of the bubble
+ * @param {Number} h Height of the bubble, not including the pointed part.
+ * @param {ChildNode} parent DOM Element that this SVG textbox bubble should be appended to.
+ */
+export function generateSvgTextbox(x, y, w, h, parent) {
+	const xmlns = 'http://www.w3.org/2000/svg';
+  let pathElem = document.createElementNS(xmlns, 'path');
+  pathElem.setAttributeNS(null, 'class', 'message-bubble');
+  pathElem.setAttributeNS(null, 'd', `M${x},${y} l0,-26 l${-(w * 0.3)},0 c0,0 -5,0 -5,-5 l0,${-h} c0,0 0,-5 5,-5 l${w},0 c0,0 5,0 5,5 l0,${h} c0,0 0,5 -5,5 l${-(w * 0.7) + 25},0 z`);
+  pathElem.setAttributeNS(null, 'stroke', '#000');
+  pathElem.setAttributeNS(null, 'stroke-width', '1px');
+  pathElem.setAttributeNS(null, 'fill-opacity', '0');
+  parent.appendChild(pathElem);
+}
+
+/**
+ * Adds text to the textbox div and create SVG speech bubble around it.
+ */
+export function createNodeCMessage(text) {
+  const nodeCGroup = document.getElementById('node-c-group');
+  const textNodeC = document.getElementById('node-c-message-text');
+  textNodeC.innerHTML = text;
+  const sizeOfText = textNodeC.offsetHeight;
+  document.getElementById('node-c-message-wrapper').setAttribute('x', nodeCPositions.base.x - 5);
+  document.getElementById('node-c-message-wrapper').setAttribute('y', nodeCPositions.base.y - 90 - sizeOfText);
+  generateSvgTextbox(nodeCPositions.base.x + 40, nodeCPositions.base.y - 50, 180, textNodeC.offsetHeight + 20, nodeCGroup);
+}
+export function destroyNodeCMessage() {
+  document.getElementById('node-c-message-text').innerHTML = '';
+  document.querySelectorAll('#node-c-group .message-bubble').forEach(node => node.remove());
+}
+export function createClientMessage(text, isQuery) {
+  const clientGroup = document.getElementById('client-group');
+  const textClient = document.getElementById('client-status-text');
+  if (isQuery) {
+    textClient.innerHTML = `Query: <span class="code-block">${text}</span>`;
+  } else {
+    textClient.innerHTML = text;
+  }
+  const sizeOfText = textClient.offsetHeight;
+  const wrapper = document.getElementById('client-status-wrapper');
+  wrapper.setAttribute('x', clientNodePositions.clientMessage.x - 60);
+  wrapper.setAttribute('y', clientNodePositions.clientMessage.y - 90 - sizeOfText);
+  const background = document.getElementById('client-message-status-bg');
+  background.setAttribute('x', clientNodePositions.clientMessage.x - 70);
+  background.setAttribute('y', clientNodePositions.clientMessage.y - 106 - sizeOfText);
+  background.setAttribute('height', sizeOfText + 30);
+  showElement(background);  
+  generateSvgTextbox(clientNodePositions.clientMessage.x - 10, clientNodePositions.clientMessage.y - 50, 180, textClient.offsetHeight + 20, clientGroup);
+}
+export function destroyClientMessage() {
+  document.getElementById('client-status-text').innerHTML = '';
+  hideElement(document.getElementById('client-message-status-bg'));
+  document.querySelectorAll('#client-group .message-bubble').forEach(node => node.remove());
+}
+export function createNodeAMessage(text) {
+  const nodeAGroup = document.getElementById('node-a-group');
+  const textClient = document.getElementById('node-a-message-text');
+  textClient.innerHTML = text;
+  const sizeOfText = textClient.offsetHeight;
+
+  const background = document.getElementById('node-a-message-status-bg');
+  background.setAttribute('x', nodeAPositions.base.x - 39);
+  background.setAttribute('y', nodeAPositions.base.y - 106 - sizeOfText);
+  background.setAttribute('height', sizeOfText + 30);
+  showElement(background);
+
+  document.getElementById('node-a-message-wrapper').setAttribute('x', nodeAPositions.base.x - 25);
+  document.getElementById('node-a-message-wrapper').setAttribute('y', nodeAPositions.base.y - 90 - sizeOfText);
+  generateSvgTextbox(nodeAPositions.base.x + 20, nodeAPositions.base.y - 50, 180, textClient.offsetHeight + 20, nodeAGroup);
+
+}
+export function destroyNodeAMessage() {
+  document.getElementById('node-a-message-text').innerHTML = '';
+  hideElement(document.getElementById('node-a-message-status-bg'));
+  const msgs = document.querySelectorAll('#node-a-group .message-bubble');
+  msgs.forEach(node => node.remove());
 }

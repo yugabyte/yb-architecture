@@ -4,8 +4,7 @@ import './App.css';
 import anime from 'animejs/lib/anime.es.js';
 import MainDiagram from './svg/MainDiagram';
 import { Constants } from './constants';
-
-var HelperFunctions = require('./HelperFunctions');
+import * as HelperFunctions from './HelperFunctions';
 
 const ANIMATION_STATE_UNSAFE_READ = "ANIMATION_STATE_UNSAFE_READ";
 const ANIMATION_STATE_NODE_C_PARTITIONED = "ANIMATION_STATE_NODE_C_PARTITIONED";
@@ -63,15 +62,6 @@ export class ReadOperationAnimation extends Component {
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
 
-    // MESSAGE OBJECTS
-    const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
-    const nodeAMessageStatus = document.getElementById('node-a-message-status');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
-    const clientQueryMessage = document.getElementById('client-query-message');
-    const clientMessageBackground = document.getElementById('client-message-status-bg');
-
 		switch(this.animationState) {
 			case Constants.ANIMATION_STATE_INITIAL: {
 				//////////////////// initial setup ////////////////////
@@ -107,22 +97,17 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_UNSAFE_READ: {
         this.changeMainText('');
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-        const nodeCText = document.getElementById('node-c-message-text-alt')
-        const contentLine1 = {
-					index: 0,
-					str: 'Unsafe to read from Raft leader without majority heartbeats. This sequence explains why.'
-        };
+        const status = document.getElementById('node-c-message-text');
 
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
-          easing: 'linear',
-          duration: 1500,
-          update: function() {
-            nodeCText.innerText = contentLine1.str.substr(0, contentLine1.index);
+					targets: status,
+					easing: 'linear',
+          duration: 1200,
+          opacity: [0, 1],
+          begin: function() {
+            HelperFunctions.createNodeCMessage('It\'s unsafe to read from Raft leader without majority heartbeats. This sequence explains why.');
           },
-          complete: () => {
+					complete: () => {
             this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
             resolve({
               animationState: this.animationState,
@@ -134,21 +119,16 @@ export class ReadOperationAnimation extends Component {
 			}
 			case ANIMATION_STATE_NODE_C_PARTITIONED: {
 				this.changeMainText('');
-        const altBubbleText = document.getElementById('node-c-message-text-alt');
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-
-				const contentLine1 = {
-					index: 0,
-					str: 'Now imagine Raft leader C gets\n partitioned from followers\n[but not from client]'
-        };
+        HelperFunctions.destroyNodeCMessage();
+        const status = document.getElementById('node-c-message-text');
 
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            altBubbleText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Now imagine Raft leader C gets\n partitioned from followers\n(but not from client)');
           },
           complete: () => {
             HelperFunctions.partitionNodeC()
@@ -162,21 +142,16 @@ export class ReadOperationAnimation extends Component {
 				break;
 			}
 			case ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER: {
-        document.getElementById('node-c-message-text-alt').innerText = '';
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        HelperFunctions.showElement(nodeAMessageBubble);
-        const content = {
-					index: 0,
-					str: 'This results in A and B\n electing a new Raft\nleader, say A.'
-        };
+        HelperFunctions.destroyNodeCMessage();
+        const status = document.getElementById('node-a-message-text');
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1300,
-          update: function() {
-            nodeAMessageStatus.innerHTML = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('This results in A and B electing a new Raft leader, say A.');
           },
           complete: () => {
             var nodeA = document.getElementById('node-a-circle');
@@ -201,118 +176,60 @@ export class ReadOperationAnimation extends Component {
          *  subtext to k: V1, and highlight the value. 
          *  After Node A sends msg to client, show Client: “Update successful!”
          */
-        nodeAMessageStatus.innerHTML = '';
-        HelperFunctions.hideElement(nodeAMessageBubble);
+        HelperFunctions.destroyNodeAMessage();
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
         HelperFunctions.introduceClient();
-
-        const clientContent1 = {
-          index: 0,
-          str: 'UPDATE T SET'
-        }
-        const clientContent2 = {
-          index: 0,
-          str: 'value = V2 WHERE'
-        }
-        const clientContent3 = {
-          index: 0,
-          str: ' key = k'
-        }
         
-        const statusText1 = document.getElementById('client-query-message-text1');
-        const statusText2 = document.getElementById('client-query-message-text2');
-        const statusText3 = document.getElementById('client-query-message-text3');
-        HelperFunctions.showElement(clientMessageBubble);
-        HelperFunctions.showElement(clientMessageBackground);
-        HelperFunctions.showElement(clientQueryMessage);
+        const status = document.getElementById('client-status-text');
         anime({
-          targets: clientContent1,
-          index: clientContent1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 400,
-          update: function() {
-            statusText1.textContent = clientContent1.str.substr(0, clientContent1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('UPDATE T SET value = V2 WHERE key = k', true);
           },
           complete: () => {
-            anime({
-              targets: clientContent2,
-              index: clientContent2.str.length,
-              easing: 'linear',
-              duration: 400,
-              update: function () {
-                statusText2.textContent = clientContent2.str.substr(0, clientContent2.index);
-              },
-              complete: () => {
-                anime({
-                  targets: clientContent3,
-                  index: clientContent3.str.length,
-                  easing: 'linear',
-                  duration: 400,
-                  update: function () {
-                    statusText3.textContent = clientContent3.str.substr(0, clientContent3.index);
-                  },
-                  complete: () => {   
-                    var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');
-                    animation.finished.then(() => {
-                      var nodeAToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, false, '(k, V2)');
-                      nodeAToBAnimation.finished.then(() => {
-                        document.getElementById('client-query-message-text1').innerHTML = '';
-                        document.getElementById('client-query-message-text2').innerHTML = '';
-                        document.getElementById('client-query-message-text3').innerHTML = '';
-                        HelperFunctions.hideElement(clientMessageBubble);
-                        HelperFunctions.hideElement(clientQueryMessage);
-                        HelperFunctions.showElement(nodeAMessageBubble);
-                        
-                        // send commit confirmation back to B
-                        var aToBAnim = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 600);
-                        nodeAExtraText.innerHTML = '(k, V2)';
-                        HelperFunctions.showElement(nodeAExtraHighlight);
-                        HelperFunctions.hideElement(nodeAExtraText2);
+            var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');
+            animation.finished.then(() => {
+              var nodeAToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, false, '(k, V2)');
+              nodeAToBAnimation.finished.then(() => {
+                HelperFunctions.destroyClientMessage();
+                
+                // send commit confirmation back to B
+                var aToBAnim = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 600);
+                nodeAExtraText.innerHTML = '(k, V2)';
+                HelperFunctions.showElement(nodeAExtraHighlight);
+                HelperFunctions.hideElement(nodeAExtraText2);
 
-                        aToBAnim.finished.then(() => {
-                          HelperFunctions.showElement(document.getElementById('node-b-text-highlight'));
-                          document.getElementById('node-b-extra-text').innerHTML = '(k, V2)';
-                          HelperFunctions.hideElement(document.getElementById('node-b-extra-text2'));
-                        });
-
-                        nodeAMessageStatus.innerHTML = '';
-                        HelperFunctions.hideElement(nodeAMessageBubble);
-
-                        // notify client as well
-                        var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);
-
-                        messageToClientAnimation.finished.then(() => {
-                          HelperFunctions.showElement(clientMessageBubble);
-                          HelperFunctions.hideElement(clientQueryMessage);
-                          document.getElementById('client-message-status').textContent = 'Update successful!';
-                          this.animationState = ANIMATION_STATE_CLIENT_READ_FROM_NODE_C;
-                          resolve({
-                            animationState: this.animationState,
-                            delay: 100,
-                          });
-                        });
-                      });
-                    })
-                  }
+                aToBAnim.finished.then(() => {
+                  HelperFunctions.showElement(document.getElementById('node-b-text-highlight'));
+                  document.getElementById('node-b-extra-text').innerHTML = '(k, V2)';
+                  HelperFunctions.hideElement(document.getElementById('node-b-extra-text2'));
                 });
-              }
+
+                // notify client as well
+                var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);
+
+                messageToClientAnimation.finished.then(() => {
+                  HelperFunctions.createClientMessage('Update successful!');
+                  this.animationState = ANIMATION_STATE_CLIENT_READ_FROM_NODE_C;
+                  resolve({
+                    animationState: this.animationState,
+                    delay: 100,
+                  });
+                });
+              });
             });
           }
         });
 				break;
 			}
 			case ANIMATION_STATE_CLIENT_READ_FROM_NODE_C: {
-        nodeAMessageStatus.innerHTML = '';
-        HelperFunctions.hideElement(nodeAMessageBubble);
         HelperFunctions.hideElement(document.getElementById('node-a-text-highlight'));
         HelperFunctions.hideElement(document.getElementById('node-b-text-highlight'));
-        document.getElementById('client-query-message-text1').innerHTML = ''
-        document.getElementById('client-query-message-text2').innerHTML = ''
-        document.getElementById('client-query-message-text3').innerHTML = ''
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(clientQueryMessage);
-        document.getElementById('client-message-status').innerHTML = '';
+        HelperFunctions.destroyClientMessage();
         
         this.changeMainText('Now the client queries C. This should return value = ' + SET_VALUE2, () => {
           this.animationState = ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER;
@@ -325,74 +242,39 @@ export class ReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER: {
         this.changeMainText('');
-        const statusText1 = document.getElementById('client-query-message-text1');
-        const statusText2 = document.getElementById('client-query-message-text2');
-        statusText1.innerHTML = '';
-        statusText2.innerHTML = '';
-        HelperFunctions.showElement(clientMessageBubble);
-        HelperFunctions.showElement(clientMessageBackground);
-        HelperFunctions.showElement(clientQueryMessage);
-
+        const status = document.getElementById('client-status-text');
         HelperFunctions.hideElement(document.getElementById('node-c-extra-text2'));
 
-        const clientContent1 = {
-          index: 0,
-          str: 'SELECT value'
-        }
-        const clientContent2 = {
-          index: 0,
-          str: 'FROM T WHERE key = k'
-        }
-
         anime({
-          targets: clientContent1,
-          index: clientContent1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 400,
-          update: function() {
-            statusText1.innerHTML = clientContent1.str.substr(0, clientContent1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('SELECT value FROM T WHERE <br>key = k', true);
           },
           complete: () => {
-            anime({
-              targets: clientContent2,
-              index: clientContent2.str.length,
-              easing: 'linear',
-              duration: 600,
-              update: function() {
-                statusText2.innerHTML = clientContent2.str.substr(0, clientContent2.index);
-              },
-              complete: () => {
-                HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
-                this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
-                resolve({
-                  animationState: this.animationState,
-                  delay: 100,
-                });
-              }
-            }); 
+            HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+            this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+            });
           }
         });
 				break;
       }
       case ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE: {
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(clientMessageBackground);
-        HelperFunctions.hideElement(clientQueryMessage);
-        const altBubbleText = document.getElementById('node-c-message-text-alt');
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-
-				const contentLine1 = {
-					index: 0,
-					str: 'C thinks it is the Raft leader.\nWithout majority heartbeats,\nC will respond with value = V1'
-        };
+        HelperFunctions.destroyClientMessage();
+        const nodeCStatus = document.getElementById('node-c-message-text');
 
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: nodeCStatus,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            altBubbleText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('C thinks it is the Raft leader. Without majority heartbeats, C will respond with <br><span class="code-block">value = V1</span>');
           },
           complete: () => {
             var animation = HelperFunctions.sendLogMessage(Constants.NODE_C, Constants.CLIENT_NODE, false);
@@ -450,16 +332,6 @@ export class ReadOperationAnimation extends Component {
     const nodeBExtraHighlight = document.getElementById('node-b-text-highlight');
     // Text Extra (Line 3)
     const nodeAExtraText2 = document.getElementById('node-a-extra-text2');
-
-    // MESSAGE OBJECTS
-    const nodeAMessageBubble = document.getElementById('node-a-message-bubble');
-    const nodeAMessageStatus = document.getElementById('node-a-message-status');
-
-    // Client
-    const clientMessageBubble = document.getElementById('client-message-bubble');
-    const clientQueryMessage = document.getElementById('client-query-message');
-    const clientMessageBackground = document.getElementById('client-message-status-bg');
-
     // MISC
     const partitionWrap = document.getElementById('node-c-partition-wrap');
 
@@ -487,8 +359,7 @@ export class ReadOperationAnimation extends Component {
       case ANIMATION_STATE_NODE_C_PARTITIONED: {
         let nodeC = document.getElementById('node-c-circle');
         nodeC.classList.remove('leader-node');
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-        document.getElementById('node-c-message-text-alt').innerText = '';
+        HelperFunctions.destroyNodeCMessage();
         nodeATermText.innerHTML = '';
         nodeBTermText.innerHTML = '';
         nodeCTermText.innerHTML = '';
@@ -514,20 +385,16 @@ export class ReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_NODE_A_ELECTED_AS_LEADER: {
         HelperFunctions.hideElement(partitionWrap);
-        const nodeCText = document.getElementById('node-c-message-text-alt')
-        nodeCText.innerText = '';
-        const contentLine1 = {
-					index: 0,
-					str: 'Unsafe to read from Raft leader without majority heartbeats. This sequence explains why.'
-        };
+        HelperFunctions.destroyNodeCMessage();
+        const status = document.getElementById('node-c-message-text');
 
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            nodeCText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Unsafe to read from Raft leader without majority heartbeats. This sequence explains why.');
           },
           complete: () => {
             this.animationState = ANIMATION_STATE_NODE_C_PARTITIONED;
@@ -547,23 +414,15 @@ export class ReadOperationAnimation extends Component {
         nodeBTermText.innerHTML = 'Term: 1';
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
-        HelperFunctions.hideElement(document.getElementById('node-a-message-bubble'));
-        nodeAMessageStatus.innerText = '';
-        const altBubbleText = document.getElementById('node-c-message-text-alt');
-        HelperFunctions.showElement(document.getElementById('node-c-message-bubble-alt'));
-
-				const contentLine1 = {
-					index: 0,
-					str: 'Now imagine Raft leader C gets\n partitioned from followers\n[but not from client]'
-        };
-
+        HelperFunctions.destroyNodeAMessage();
+        const status = document.getElementById('node-c-message-text');
         anime({
-          targets: contentLine1,
-          index: contentLine1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1500,
-          update: function() {
-            altBubbleText.innerText = contentLine1.str.substr(0, contentLine1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeCMessage('Now imagine Raft leader C gets partitioned from followers (but not from client)');
           },
           complete: () => {
             HelperFunctions.showElement(partitionWrap);
@@ -577,30 +436,24 @@ export class ReadOperationAnimation extends Component {
         break;
       }
       case ANIMATION_STATE_CLIENT_READ_FROM_NODE_C: {
-        HelperFunctions.hideElement(clientMessageBubble);
-        HelperFunctions.hideElement(document.getElementById('client-node'));
+        HelperFunctions.destroyClientMessage();
         HelperFunctions.hideElement(document.getElementById('client-message-circle'));
-        document.getElementById('client-message-status').innerHTML = '';
         HelperFunctions.hideElement(nodeAExtraHighlight);
         HelperFunctions.hideElement(nodeBExtraHighlight);
-        HelperFunctions.hideElement(clientQueryMessage);
         nodeAExtraText.innerText = '(k, V1)';
         nodeBExtraText.innerText = '(k, V1)';
         HelperFunctions.setSVGText({targetId: 'node-a-term-text', text: "Term: 1"});
         HelperFunctions.setSVGText({targetId: 'node-b-term-text', text: "Term: 1"});
-        HelperFunctions.showElement(nodeAMessageBubble);
-        const content = {
-					index: 0,
-					str: 'This results in A and B\n electing a new Raft\nleader, say A.'
-        };
+        
+        const nodeAContent = document.getElementById('node-a-message-text');
 
         anime({
-          targets: content,
-          index: content.str.length,
+          targets: nodeAContent,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 1300,
-          update: function() {
-            nodeAMessageStatus.innerHTML = content.str.substr(0, content.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createNodeAMessage('This results in A and B electing a new Raft leader, say A.');
           },
           complete: () => {
             var nodeA = document.getElementById('node-a-circle');
@@ -620,104 +473,53 @@ export class ReadOperationAnimation extends Component {
       }
       case ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER: {
         this.changeMainText('');
-        nodeAMessageStatus.innerHTML = '';
-        HelperFunctions.hideElement(nodeAMessageBubble);
+        HelperFunctions.destroyNodeAMessage();
         HelperFunctions.hideElement(nodeATermHighlight);
         HelperFunctions.hideElement(nodeBTermHighlight);
         HelperFunctions.introduceClient();
 
-        const clientContent1 = {
-          index: 0,
-          str: 'UPDATE T SET'
-        }
-        const clientContent2 = {
-          index: 0,
-          str: 'value = V2 WHERE'
-        }
-        const clientContent3 = {
-          index: 0,
-          str: ' key = k'
-        }
-        
-        const statusText1 = document.getElementById('client-query-message-text1');
-        const statusText2 = document.getElementById('client-query-message-text2');
-        const statusText3 = document.getElementById('client-query-message-text3');
-        statusText1.innerHTML = '';
-        statusText2.innerHTML = '';
-        statusText3.innerHTML = '';
-        HelperFunctions.showElement(clientMessageBubble);
-        HelperFunctions.showElement(clientMessageBackground);
-        HelperFunctions.showElement(clientQueryMessage);
+        const status = document.getElementById('client-status-text');
+
         anime({
-          targets: clientContent1,
-          index: clientContent1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 400,
-          update: function() {
-            statusText1.textContent = clientContent1.str.substr(0, clientContent1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('UPDATE T SET value = V2 WHERE <br>key = k', true);
           },
           complete: () => {
-            anime({
-              targets: clientContent2,
-              index: clientContent2.str.length,
-              easing: 'linear',
-              duration: 400,
-              update: function () {
-                statusText2.textContent = clientContent2.str.substr(0, clientContent2.index);
-              },
-              complete: () => {
-                anime({
-                  targets: clientContent3,
-                  index: clientContent3.str.length,
-                  easing: 'linear',
-                  duration: 400,
-                  update: function () {
-                    statusText3.textContent = clientContent3.str.substr(0, clientContent3.index);
-                  },
-                  complete: () => {   
-                    var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');
-                    animation.finished.then(() => {
-                      var nodeAToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, false, '(k, V2)');
-                      nodeAToBAnimation.finished.then(() => {
-                        document.getElementById('client-query-message-text1').innerHTML = '';
-                        document.getElementById('client-query-message-text2').innerHTML = '';
-                        document.getElementById('client-query-message-text3').innerHTML = '';
-                        HelperFunctions.hideElement(clientMessageBubble);
-                        HelperFunctions.showElement(nodeAMessageBubble);
-                        
-                        // send commit confirmation back to B
-                        var aToBAnim = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 600);
-                        nodeAExtraText.innerHTML = '(k, V2)';
-                        HelperFunctions.showElement(nodeAExtraHighlight);
-                        HelperFunctions.hideElement(nodeAExtraText2);
+            var animation = HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_A, false, false, '(k, V2)');
+            animation.finished.then(() => {
+              var nodeAToBAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, true, false, '(k, V2)');
+              nodeAToBAnimation.finished.then(() => {
+                HelperFunctions.destroyClientMessage();
+                
+                // send commit confirmation back to B
+                var aToBAnim = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.NODE_B, false, false, '', true, 600);
+                nodeAExtraText.innerHTML = '(k, V2)';
+                HelperFunctions.showElement(nodeAExtraHighlight);
+                HelperFunctions.hideElement(nodeAExtraText2);
 
-                        aToBAnim.finished.then(() => {
-                          HelperFunctions.showElement(document.getElementById('node-b-text-highlight'));
-                          document.getElementById('node-b-extra-text').innerHTML = '(k, V2)';
-                          HelperFunctions.hideElement(document.getElementById('node-b-extra-text2'));
-                        });
-
-                        nodeAMessageStatus.innerHTML = '';
-                        HelperFunctions.hideElement(nodeAMessageBubble);
-
-                        // notify client as well
-                        var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);
-
-                        messageToClientAnimation.finished.then(() => {
-                          HelperFunctions.showElement(clientMessageBubble);
-                          document.getElementById('client-message-status').textContent = 'Update successful!';
-                          this.animationState = ANIMATION_STATE_CLIENT_READ_FROM_NODE_C;
-                          resolve({
-                            animationState: this.animationState,
-                            delay: 100,
-                          });
-                        });
-                      });
-                    })
-                  }
+                aToBAnim.finished.then(() => {
+                  HelperFunctions.showElement(document.getElementById('node-b-text-highlight'));
+                  document.getElementById('node-b-extra-text').innerHTML = '(k, V2)';
+                  HelperFunctions.hideElement(document.getElementById('node-b-extra-text2'));
                 });
-              }
-            });
+
+                // notify client as well
+                var messageToClientAnimation = HelperFunctions.sendLogMessage(Constants.NODE_A, Constants.CLIENT_NODE);
+
+                messageToClientAnimation.finished.then(() => {
+                  HelperFunctions.createClientMessage('Update successful!');
+                  this.animationState = ANIMATION_STATE_CLIENT_READ_FROM_NODE_C;
+                  resolve({
+                    animationState: this.animationState,
+                    delay: 100,
+                  });
+                });
+              });
+            })
           }
         });
         break;
@@ -725,9 +527,7 @@ export class ReadOperationAnimation extends Component {
 
 
       case ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE: {
-        HelperFunctions.hideElement(clientMessageBackground);
-        HelperFunctions.hideElement(clientQueryMessage);
-        HelperFunctions.hideElement(clientMessageBubble);
+        HelperFunctions.destroyClientMessage();
         this.changeMainText('Now the client queries C. This should return value = ' + SET_VALUE2, () => {
           this.animationState = ANIMATION_STATE_CLIENT_SENDS_QUERY_TO_OLD_LEADER;
             resolve({
@@ -739,56 +539,25 @@ export class ReadOperationAnimation extends Component {
       }
       case Constants.ANIMATION_STATE_FINISHED: {
         this.setState({ animationFinished: false });
-        document.getElementById('node-c-message-text-alt').innerHTML = '';
-
+        HelperFunctions.destroyNodeCMessage();
         HelperFunctions.hideElement(document.getElementById('client-node-value-alt'));
-        HelperFunctions.hideElement(document.getElementById('node-c-message-bubble-alt'));
-
-        const statusText1 = document.getElementById('client-query-message-text1');
-        const statusText2 = document.getElementById('client-query-message-text2');
-        statusText1.innerHTML = '';
-        statusText2.innerHTML = '';
-        HelperFunctions.showElement(clientMessageBubble);
-        HelperFunctions.showElement(clientMessageBackground);
-        HelperFunctions.showElement(clientQueryMessage);
-
-        HelperFunctions.hideElement(document.getElementById('node-c-extra-text2'));
-
-        const clientContent1 = {
-          index: 0,
-          str: 'SELECT value'
-        }
-        const clientContent2 = {
-          index: 0,
-          str: 'FROM T WHERE key = k'
-        }
+        const status = document.getElementById('client-status-text');
 
         anime({
-          targets: clientContent1,
-          index: clientContent1.str.length,
+          targets: status,
+          opacity: [0, 1],
           easing: 'linear',
-          duration: 400,
-          update: function() {
-            statusText1.innerHTML = clientContent1.str.substr(0, clientContent1.index);
+          duration: 1200,
+          begin: function() {
+            HelperFunctions.createClientMessage('SELECT value FROM T WHERE <br>key = k', true);
           },
           complete: () => {
-            anime({
-              targets: clientContent2,
-              index: clientContent2.str.length,
-              easing: 'linear',
-              duration: 600,
-              update: function() {
-                statusText2.innerHTML = clientContent2.str.substr(0, clientContent2.index);
-              },
-              complete: () => {
-                HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
-                this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
-                resolve({
-                  animationState: this.animationState,
-                  delay: 100,
-                });
-              }
-            }); 
+            HelperFunctions.sendLogMessage(Constants.CLIENT_NODE, Constants.NODE_C, false);
+            this.animationState = ANIMATION_STATE_NODE_C_RETURNS_INCORRECT_VALUE;
+            resolve({
+              animationState: this.animationState,
+              delay: 100,
+            });
           }
         });
         break;
