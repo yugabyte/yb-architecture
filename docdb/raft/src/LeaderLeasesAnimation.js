@@ -321,13 +321,13 @@ export class LeaderLeaseAnimation extends Component {
                   HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
                   document.getElementById('client-node-value-error-header').innerHTML = 'Query Rejected:';
                   document.getElementById('client-node-value-error-subtitle').innerHTML = 'Old leader still has lease';
+                  this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
+                  resolve({
+                    animationState: this.animationState,
+                    delay: 100,
+                  });
                 },
                 alternate: true,
-              });
-              this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
-              resolve({
-                animationState: this.animationState,
-                delay: 100,
               });
             }
           });
@@ -416,7 +416,7 @@ export class LeaderLeaseAnimation extends Component {
             });
             this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
               duration: 2500,
-              targetPercent: 10,
+              targetPercent: 20,
               startPercent: 40,
               disableAutoPlay: true
             });
@@ -875,14 +875,15 @@ export class LeaderLeaseAnimation extends Component {
                   messageContrainerElement.style.transform = 'none';
                   HelperFunctions.setSVGText({targetId: 'client-message-text', text: ''});
                   HelperFunctions.showElement(document.getElementById('client-node-value-alt'));
+                  this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
+                  resolve({
+                    animationState: this.animationState,
+                    delay: 100,
+                  });
                 },
                 alternate: true,
               });
-              this.animationState = ANIMATION_STATE_OLD_LEADER_STILL_READABLE;
-              resolve({
-                animationState: this.animationState,
-                delay: 100,
-              });
+              
             }
           });
         });
@@ -981,7 +982,7 @@ export class LeaderLeaseAnimation extends Component {
             });
             this.nodeBTimerAnimation = HelperFunctions.startLeaderLeaseTimer(Constants.NODE_B, {
               duration: 2500,
-              targetPercent: 10,
+              targetPercent: 20,
               startPercent: 40,
             });
             this.nodeATimerAnimation.finished.then(() => {
